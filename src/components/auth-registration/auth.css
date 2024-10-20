@@ -1,6 +1,9 @@
 body {
     font-family: Arial, sans-serif;
     background-color: #f0f2f5;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
 }
 
 .auth-container {
@@ -8,6 +11,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    overflow: hidden; /* Отключим общую прокрутку */
 }
 
 .auth-box {
@@ -15,8 +19,10 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    width: 300px;
+    width: 400px;
     text-align: center;
+    max-height: 90vh; /* Ограничиваем высоту блока */
+    overflow-y: auto; /* Добавляем вертикальную прокрутку, если содержимое больше чем высота */
 }
 
 .auth-title {
@@ -32,15 +38,16 @@ body {
 label {
     display: block;
     margin-bottom: 5px;
-    font-size: 18px;
+    font-size: 16px;
 }
 
-input {
-    width: 85%;
+input, select {
+    width: 100%;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 16px;
+    margin-bottom: 10px;
 }
 
 button {
@@ -52,6 +59,7 @@ button {
     cursor: pointer;
     width: 100%;
     font-size: 16px;
+    margin-top: 10px;
 }
 
 button:hover {
@@ -62,4 +70,24 @@ button:hover {
     padding-bottom: 10px;
     text-align: center;
     font-size: 18px;
+}
+
+select {
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+input[type="number"] {
+    max-width: 100px;
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
 }
