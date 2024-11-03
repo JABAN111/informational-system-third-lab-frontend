@@ -1,0 +1,56 @@
+.group-form {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: auto;
+    max-height: 80vh; /* Максимальная высота формы */
+    overflow-y: auto; /* Добавляет прокрутку по вертикали */
+}
+
+.group-form h2 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.group-form form {
+    display: flex;
+    flex-direction: column;
+}
+
+.group-form label {
+    margin-bottom: 10px;
+}
+
+.group-form input[type="text"],
+.group-form input[type="number"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.group-form button {
+    padding: 10px 15px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #28a745;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.group-form button:hover {
+    background-color: #218838;
+}
+
+.group-form .cancel-button {
+    background-color: #dc3545;
+}
+
+.group-form .cancel-button:hover {
+    background-color: #c82333;
+}

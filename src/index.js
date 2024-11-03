@@ -5,6 +5,7 @@ import {BrowserRouter, Route, Routes} from "react-router-dom";
 import AuthComponent from "./components/auth-registration/AuthComponent";
 import Home from "./components/home/home";
 import MainPage from "./components/main-page/main-page";
+import GroupManaging from "./components/main-page/groups-managing/group-managing";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -14,6 +15,7 @@ root.render(
             <Route path="/" element={<Home/>} />
             <Route path="/auth" element={<AuthComponent/>} />
             <Route path="/main-page" element={<MainPage/>} />
+            <Route path="/group-management" element={<GroupManaging/>} />
         </Routes>
     </BrowserRouter>
 

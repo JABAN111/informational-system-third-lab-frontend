@@ -12,25 +12,7 @@ function AuthComponent() {
     const [password, setPassword] = useState('');
     const [confirmedPassword, setConfirmedPassword] = useState('');
 
-    const [personName, setPersonName] = useState('');
 
-    const [eyeColor, setEyeColor] = useState('GREEN');
-    const colors = {
-        GREEN: "зеленые",
-        BLACK: "черные",
-        WHITE: "белые",
-        BROWN: "коричневые"
-    }
-    const [hairColor, setHairColor] = useState("GREEN");
-    const [location, setLocation] = useState({
-        x: 0,
-        y: 0,
-        z: 0,
-        name: ""
-    });
-    const [height, setHeight] = useState(0);
-    const [weight, setWeight] = useState(0);
-    const [passportID, setPassportID] = useState('');
 
 
 
@@ -106,20 +88,11 @@ function AuthComponent() {
         }
 
 
-        let person = {
-            name: personName,
-            eyeColor: eyeColor,
-            hairColor: hairColor,
-            location: location,
-            height: height,
-            weight: weight,
-            passportID: passportID,
-        }
 
         let body = {
             username: email,
             password: password,
-            person: person,
+            // person: person,
             role: roleToServ,
         }
         console.log("отправится: ", body)
@@ -194,100 +167,7 @@ function AuthComponent() {
                             <label htmlFor="confirm-password">Подтвердите пароль:</label>
                             <input className="password-input" type="password" id="confirm-password" required
                                    onChange={(e) => validateConfirmedPassword(e.target.value)}/>
-                            <p>Информация о человеке: </p>
-                            {/*данные о Person*/}
-                            <div className={`form-group fade-in`}>
-                                <label htmlFor="personName">Имя:</label>
-                                <input
-                                    id="personName"
-                                    type="text"
-                                    onChange={(e) => setPersonName(e.target.value)}
-                                    required
-                                />
 
-                                <label htmlFor="eye-color">Цвет глаз:</label>
-                                <select id="eye-color" value={eyeColor} onChange={(e) => setEyeColor(e.target.value)}>
-                                    {Object.keys(colors).map((color) => (
-                                        <option key={color} value={color}>{colors[color]}</option>
-                                    ))}
-                                </select>
-
-                                <label htmlFor="hair-color">Цвет волос:</label>
-                                <select
-                                    id="hair-color"
-                                    value={hairColor}
-                                    onChange={(e) => setHairColor(e.target.value)}
-                                >
-                                    {Object.keys(colors).map((color) => (
-                                        <option key={color} value={color}>
-                                            {colors[color]}
-                                        </option>
-                                    ))}
-                                </select>
-
-                                <label htmlFor="location-x">Местоположение (X):</label>
-                                <input
-                                    type="number"
-                                    id="location-x"
-                                    value={location.x}
-                                    onChange={(e) => setLocation({location, x: e.target.value})}
-                                />
-
-                                <label htmlFor="location-y">Местоположение (Y):</label>
-                                <input
-                                    type="number"
-                                    id="location-y"
-                                    value={location.y}
-                                    onChange={(e) => setLocation({...location, y: e.target.value})}
-                                />
-
-                                <label htmlFor="location-z">Местоположение (Z):</label>
-                                <input
-                                    type="number"
-                                    id="location-z"
-                                    value={location.z}
-                                    onChange={(e) => setLocation({...location, z: e.target.value})}
-                                />
-
-                                <label htmlFor="location-name">Название местоположения:</label>
-                                <input
-                                    type="text"
-                                    id="location-name"
-                                    value={location.name}
-                                    onChange={(e) => setLocation({...location, name: e.target.value})}
-                                    placeholder="Введите название местоположения"
-                                />
-
-                                <label htmlFor="height">Рост</label>
-                                <input
-                                    type="number"
-                                    id="height"
-                                    value={height}
-                                    onChange={(e) => setHeight(e.target.value)}
-                                    min="1"
-                                    placeholder={"Введите ваш рост"}
-                                />
-
-                                <label htmlFor="weight">Вес</label>
-                                <input
-                                    type="number"
-                                    id="weight"
-                                    value={weight}
-                                    onChange={(e) => setWeight(e.target.value)}
-                                    min="1"
-                                    placeholder={"Введите ваш вес"}
-                                />
-
-                                <label htmlFor="passportId"/>
-                                <input
-                                    type="text"
-                                    id="passportId"
-                                    value={passportID}
-                                    onChange={(e) => setPassportID(e.target.value)}
-                                    required
-                                    placeholder={"Введите паспорт id"}
-                                    min={10}/>
-                            </div>
 
                             <label htmlFor="user-select">Выберите желаемую роль:</label>
                             <select id="user-select" value={userRole} onChange={handleUserRoleSelection}>

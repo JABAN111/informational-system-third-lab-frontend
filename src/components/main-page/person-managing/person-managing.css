@@ -1,0 +1,10 @@
+#manage-page{
+    display: flex;
+    flex-direction: row;
+}
+
+#item-per-page{
+    width: 30%;
+    margin-left: 20px;
+}
+
