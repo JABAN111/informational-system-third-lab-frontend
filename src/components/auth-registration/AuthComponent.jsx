@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import './auth.css';
-import { CREATE_USER, GET_PERSONS, LOGIN, SERVER_URL } from "../../config";
+import {CREATE_USER, LOGIN, SERVER_URL} from "../../config";
 import {useNavigate} from "react-router-dom";
 
 function AuthComponent() {
@@ -13,13 +13,8 @@ function AuthComponent() {
     const [confirmedPassword, setConfirmedPassword] = useState('');
 
 
-
-
-
     const [userRole, setUserRole] = useState('Обычный пользователь');
     const roles = [ 'Обычный пользователь', 'Администратор',];
-
-
 
 
     const handleUserRoleSelection = (e) => {
@@ -34,7 +29,7 @@ function AuthComponent() {
             if (isLogin) {
                 console.log("Данные отправляются...");
                 sendAuthRequest();
-            }else{
+            } else {
                 registrationRequest()
             }
         }
@@ -72,27 +67,24 @@ function AuthComponent() {
     const registrationRequest = () => {
         //todo дописать логику админа
         let isUserAdmin = false;
-        if(userRole === "Администратор") {
+        if (userRole === "Администратор") {
             isUserAdmin = sendRequestForAdminPrivilege()
             console.log("администраторов временно нет, ", isUserAdmin);
         }
 
         let roleToServ;
-        switch (userRole){
+        switch (userRole) {
             case "Обычный пользователь":
-                roleToServ = "USUAL_USER"
+                roleToServ = "ROLE_USER"
                 break;
             case "Администратор":
-                roleToServ = "SUPER_USER"
+                roleToServ = "ROLE_ADMIN"
                 break;
         }
-
-
 
         let body = {
             username: email,
             password: password,
-            // person: person,
             role: roleToServ,
         }
         console.log("отправится: ", body)
@@ -105,15 +97,19 @@ function AuthComponent() {
                 },
                 body: JSON.stringify(body)
             }
-        ).then(res => {
-            // res.json()
-            if(res.status === 201)
-                navigate("/main-page")
-        })
-            // .then(data => {
-            //     }
-            // )
-            .catch(err => console.log(err));
+        ).then(
+            res => res.json()
+        ).then(
+            data => {
+                if (data.token) { // Проверяем, что токен получен
+                    sessionStorage.setItem('sessionId', data.token); // Сохраняем токен в sessionStorage
+                    console.log("Токен сохранён в sessionStorage:", data.token);
+                    navigate("/main-page"); // Переходим на основную страницу после успешного сохранения
+                } else {
+                    console.log("Ошибка: токен не получен.");
+                }
+            })
+            .catch(err => console.log("Ошибка запроса:", err));
     }
 
     const sendAuthRequest = () => {
@@ -122,29 +118,24 @@ function AuthComponent() {
             password: password,
         };
 
-
         fetch(`${SERVER_URL}/${LOGIN}`, {
+
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(body)
+
         })
-            .then(res =>
-                {
-                    if(res.ok)
-                        navigate("/main-page")
+            .then(res => res.json())
+            .then(data => {
+                if (data.token) {
+                    sessionStorage.setItem('sessionId', data.token);
+                    console.log("Токен сохранён в sessionStorage:", data.token);
+                    // navigate("/main-page"); // Переходим на основную страницу после успешного сохранения
                 }
-                // res.json()
-            )
-            // .then(data => {
-            //         console.log(data)
-            //         if (data.success) {
-            //             navigate("/main-page")
-            //         }
-            //     }
-            // )
-            .catch(err => console.log(err));
+            })
+            .catch(err => console.error(err));
     };
 
     return (
@@ -156,7 +147,7 @@ function AuthComponent() {
                 <form onSubmit={submitHandler}>
                     <div className={`form-group ${isLogin ? 'fade-in' : 'fade-out'}`}>
                         <label htmlFor="email">Электронная почта:</label>
-                        <input type="email" id="email" required onChange={(e) => setEmail(e.target.value)} />
+                        <input type="email" id="email" required onChange={(e) => setEmail(e.target.value)}/>
                     </div>
                     <div className={`form-group ${isLogin ? 'fade-in' : 'fade-out'}`}>
                         <label htmlFor="password">Пароль:</label>
