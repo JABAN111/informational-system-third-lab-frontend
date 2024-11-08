@@ -46,7 +46,7 @@ const PersonForm = ({selectedPerson, onSubmit, onClose}) => {
         }
     }, [selectedPerson]);
 
-    async function handleFormClose(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
 
         let person = {
@@ -80,8 +80,7 @@ const PersonForm = ({selectedPerson, onSubmit, onClose}) => {
     }
 
     return (
-        <form onSubmit={handleFormClose}>
-
+        <form onSubmit={handleSubmit}>
             <div className={`form-group fade-in`}>
                 <label htmlFor="personName">Имя:</label>
                 <input
