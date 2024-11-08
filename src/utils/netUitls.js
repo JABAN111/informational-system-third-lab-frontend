@@ -25,3 +25,4 @@ const authFetch = (url, options = {}) => {
 
     return fetch(url, authOptions);
 };
+export default authFetch;

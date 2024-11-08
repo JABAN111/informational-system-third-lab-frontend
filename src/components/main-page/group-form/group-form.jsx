@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CREATE_NEW_GROUP, GET_PERSONS } from "../../../config";
 import "./group-form.css";
+import authFetch from "../../../utils/netUitls";
 
 const GroupForm = ({ group, onClose}) => {
     const [groupName, setGroupName] = useState("");
@@ -41,7 +42,7 @@ const GroupForm = ({ group, onClose}) => {
 
     const fetchPeople = async () => {
         try {
-            const response = await fetch(`${GET_PERSONS}`);
+            const response = await authFetch(`${GET_PERSONS}`);
             const data = await response.json();
             if (Array.isArray(data)) {
                 setGroupPotentialAdmin(data); // Сохраняем массив людей
@@ -73,7 +74,7 @@ const GroupForm = ({ group, onClose}) => {
         };
         console.log("sending: ", newGroup);
         try {
-            await fetch(url, {
+            await authFetch(url, {
                 method,
                 headers: {
                     'Content-Type': 'application/json',

@@ -3,6 +3,7 @@ import './group-managing.css';
 import {DELETE_GROUP, GET_ALL_GROUPS, SERVER_URL} from '../../../config';
 import GroupForm from "../group-form/group-form";
 import Modal from "../modal";
+import authFetch from "../../../utils/netUitls";
 
 const GroupManaging = () => {
     const [studyGroups, setStudyGroups] = useState([]);
@@ -28,7 +29,7 @@ const GroupManaging = () => {
     const fetchGroups = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(
+            const response = await authFetch(
                 `${GET_ALL_GROUPS}`)
                 // `${SERVER_URL}/study-groups?page=${currentPage}&size=${pageSize}`);
             const data = await response.json();

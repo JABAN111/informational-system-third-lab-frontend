@@ -3,6 +3,7 @@ import './person-managing.css';
 import {CREATE_PERSON, DELETE_PERSON, GET_PERSONS, UPDATE_PERSON} from '../../../config';
 import Modal from "../modal";
 import PersonForm from "../person-form/person-form";
+import authFetch from "../../../utils/netUitls";
 
 const PersonManaging = () => {
     const [people, setPeople] = useState([]);
@@ -23,7 +24,7 @@ const PersonManaging = () => {
     const fetchPeople = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(`${GET_PERSONS}`);
+            const response = await authFetch(`${GET_PERSONS}`);
             const data = await response.json();
             console.log(data);
 
@@ -41,7 +42,7 @@ const PersonManaging = () => {
     };
 
     const handleSave = async (newPerson) => {
-        return await fetch(
+        return await authFetch(
             `${CREATE_PERSON}`,
             {
                 method: 'POST',
