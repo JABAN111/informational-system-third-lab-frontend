@@ -46,7 +46,7 @@ const GroupManaging = () => {
     const handleDelete = async (id) => {
         if (window.confirm("Вы уверены, что хотите удалить эту группу?")) {
             try {
-                await fetch(`${DELETE_GROUP}/${id}`, {method: 'DELETE'});
+                await authFetch(`${DELETE_GROUP}/${id}`, {method: 'DELETE'});
                 fetchGroups(currentPage, groupsPerPage);
             } catch (error) {
                 console.error("Ошибка при удалении группы:", error);
