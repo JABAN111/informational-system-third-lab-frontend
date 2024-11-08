@@ -58,7 +58,7 @@ const PersonManaging = () => {
     const handleDelete = async (id) => {
         if (window.confirm("А ТЫ УВЕРЕН, ЧТО НЕ ПРОМАХНУЛСЯ, СУКА?")) {
             try {
-                await fetch(`${DELETE_PERSON}/${id}`, {
+                await authFetch(`${DELETE_PERSON}/${id}`, {
                     method: 'DELETE'
                 });
                 fetchPeople(); // Обновляем список людей
@@ -70,7 +70,7 @@ const PersonManaging = () => {
 
     const handleEdit = async (updatedPerson) => {
 
-        return await fetch(
+        return await authFetch(
             `${UPDATE_PERSON}`,
             {
                 method: 'POST',
