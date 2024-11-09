@@ -1,9 +1,15 @@
 import React, {useEffect, useState} from 'react';
 import './group-managing.css';
-import {DELETE_GROUP, GET_ALL_GROUPS, SERVER_URL} from '../../../config';
+import {
+    CREATE_NEW_GROUP,
+    DELETE_GROUP,
+    GET_ALL_GROUPS,
+    UPDATE_GROUP,
+} from '../../../config';
 import GroupForm from "../group-form/group-form";
 import Modal from "../modal";
 import authFetch from "../../../utils/netUitls";
+import PersonForm from "../person-form/person-form";
 
 const GroupManaging = () => {
     const [studyGroups, setStudyGroups] = useState([]);
@@ -16,6 +22,7 @@ const GroupManaging = () => {
     const [pageSize, setPageSize] = useState(10);      // Количество элементов на странице
     const [totalPages, setTotalPages] = useState(1);   // Общее количество страниц
 
+    const [isEdit, setIsEdit] = useState(false);
 
 
     // useEffect(() => {
@@ -31,7 +38,6 @@ const GroupManaging = () => {
         try {
             const response = await authFetch(
                 `${GET_ALL_GROUPS}`)
-                // `${SERVER_URL}/study-groups?page=${currentPage}&size=${pageSize}`);
             const data = await response.json();
             //
             setStudyGroups(data); // Предположим, что сервер возвращает группы под ключом 'groups'
@@ -54,9 +60,30 @@ const GroupManaging = () => {
         }
     };
 
-    const handleEdit = (group) => {
-        setSelectedGroup(group);
-        setIsFormVisible(true);
+    const handleSave = async (newGroup) => {
+        return await authFetch(
+            `${CREATE_NEW_GROUP}`,
+            {
+                method: 'POST',
+                headers: {
+                    "content-type": "application/json",
+                },
+                body: JSON.stringify(newGroup),
+            }
+        )
+    };
+
+    const handleEdit = async (group) => {
+        return await authFetch(
+            `${UPDATE_GROUP}/${group.id}`,
+            {
+                method: 'PATCH',
+                headers: {
+                    "content-type": "application/json",
+                },
+                body: JSON.stringify(group)
+            }
+        )
     };
 
     const handleFilterChange = (e) => {
@@ -70,6 +97,7 @@ const GroupManaging = () => {
     const handleFormClose = () => {
         setIsFormVisible(false);
         setSelectedGroup(null);
+        setIsEdit(false);
         fetchGroups(currentPage, groupsPerPage);
     };
 
@@ -132,7 +160,23 @@ const GroupManaging = () => {
                                 <td>{group.studentsCount}</td>
                                 <td>{group.groupAdmin.name}</td>
                                 <td>
-                                    <button onClick={() => handleEdit(group)}>Редактировать</button>
+                                    <button onClick={() =>
+                                    {
+                                        setIsEdit(true);
+                                        setIsFormVisible(true);
+
+                                        let foundGroup = studyGroups.find((study) => study.id === group.id);
+                                        if(foundGroup) {
+                                            setSelectedGroup(foundGroup);
+                                        }else {
+                                            console.error("Нихуя мы не нашли, чебурашка");
+                                            setIsEdit(false);
+                                            setSelectedGroup(null);
+                                        }
+                                    }}
+                                    >
+                                        Редактировать
+                                    </button>
                                     <button onClick={() => handleDelete(group.id)}>Удалить</button>
                                 </td>
                             </tr>
@@ -161,8 +205,9 @@ const GroupManaging = () => {
 
             <Modal isOpen={isFormVisible} onClose={handleFormClose}>
                 <GroupForm
-                    group={selectedGroup}
+                    selectedGroup={selectedGroup}
                     onClose={handleFormClose}
+                    onSubmit={isEdit ? handleEdit : handleSave}
                 />
             </Modal>
         </div>

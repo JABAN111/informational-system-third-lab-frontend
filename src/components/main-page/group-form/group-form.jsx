@@ -3,7 +3,7 @@ import { CREATE_NEW_GROUP, GET_PERSONS } from "../../../config";
 import "./group-form.css";
 import authFetch from "../../../utils/netUitls";
 
-const GroupForm = ({ group, onClose}) => {
+const GroupForm = ({ selectedGroup, onSubmit, onClose }) => {
     const [groupName, setGroupName] = useState("");
     const [studentsCount, setStudentsCount] = useState(0);
     const [groupPotentialAdmin, setGroupPotentialAdmin] = useState([]);
@@ -30,6 +30,18 @@ const GroupForm = ({ group, onClose}) => {
     };
 
     useEffect(()=>{
+        if(selectedGroup){
+            setGroupName(selectedGroup.name || '');
+            setStudentsCount(selectedGroup.studentsCount || 0);
+            setChosenAdmin(selectedGroup.chosenAdmin || null);
+            setCoordinates(selectedGroup.coordinates || {x:0,y:0});
+            setExlledStudentsCount(selectedGroup.expelledStudents || 0);
+            setTransferredStudents(selectedGroup.transferredStudents || 0);
+            setFormOfEducation(selectedGroup.formOfEducation || null);
+            setShouldBeExpelled(selectedGroup.shouldBeExpelled || 0);
+            setAverageMark(selectedGroup.averageMark || 0);
+            setSemester(selectedGroup.semester || "SECOND");
+        }
         fetchPeople()
     },[])
 
@@ -56,11 +68,11 @@ const GroupForm = ({ group, onClose}) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const method = 'POST';
-
-        const url = `${CREATE_NEW_GROUP}`;
 
         const newGroup = {
+            ...(selectedGroup?.id && {
+                id: selectedGroup.id,
+            }),
             name: groupName,
             coordinates: coordinates,
             studentsCount: studentsCount,
@@ -73,23 +85,27 @@ const GroupForm = ({ group, onClose}) => {
             groupAdmin: chosenAdmin//groupPotentialAdmin.filter(admin => admin.selected),
         };
         console.log("sending: ", newGroup);
-        try {
-            await authFetch(url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newGroup),
-            });
-            console.log("Группа успешно сохранена");
-        } catch (error) {
-            console.error("Ошибка при сохранении группы:", error);
+
+        const submitValue = onSubmit(newGroup);
+        console.log(submitValue.json);
+        if(!submitValue) {
+            console.log("непраивльное значение submit value")
+            return;
         }
-    };
+
+        submitValue.then(res => {
+                if (res.status === 200 || res.status === 201) {
+                    onClose();
+                } else {
+                    console.error("problems with submit: ", res);
+                }
+            }
+        );
+    }
 
     return (
         <div className="group-form">
-            <h2>{group ? 'Редактировать группу' : 'Добавить группу'}</h2>
+            <h2>{selectedGroup ? 'Редактировать группу' : 'Добавить группу'}</h2>
             <form onSubmit={handleSubmit}>
                 <label>
                     Имя группы:

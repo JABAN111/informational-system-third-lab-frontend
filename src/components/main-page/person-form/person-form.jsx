@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 
-const PersonForm = ({selectedPerson, onSubmit, onClose}) => {
+const PersonForm = ({selectedPerson, onSubmit, onClose, showNotification}) => {
     const [personName, setPersonName] = useState('');
     const [eyeColor, setEyeColor] = useState('GREEN');
 
@@ -70,6 +70,7 @@ const PersonForm = ({selectedPerson, onSubmit, onClose}) => {
         submitValue.then(res => {
 
                 if (res.status === 200 || res.status === 201) {
+                    showNotification("ура, победа","success")
                     onClose();
                 } else {
                     console.error("problems with submit: ", res);

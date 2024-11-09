@@ -16,5 +16,6 @@ const API_STUDY_GROUP = `api/${API_VERSION}/manage/study-groups`
 export const GET_ALL_GROUPS = `${SERVER_URL}/${API_STUDY_GROUP}/get-all-groups`
 export const CREATE_NEW_GROUP = `${SERVER_URL}/${API_STUDY_GROUP}/create-new-group`
 export const DELETE_GROUP = `${SERVER_URL}/${API_STUDY_GROUP}/delete-group-by-id`
+export const UPDATE_GROUP = `${SERVER_URL}/${API_STUDY_GROUP}/update-group-by-id`
 
 export const REQUEST_ADMIN = "request_admin"

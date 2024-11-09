@@ -1,9 +1,11 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import './person-managing.css';
-import {CREATE_PERSON, DELETE_PERSON, GET_PERSONS, UPDATE_PERSON} from '../../../config';
+import { CREATE_PERSON, DELETE_PERSON, GET_PERSONS, UPDATE_PERSON } from '../../../config';
 import Modal from "../modal";
 import PersonForm from "../person-form/person-form";
 import authFetch from "../../../utils/netUitls";
+import Notification from "../../notification-component/notification";
+
 
 const PersonManaging = () => {
     const [people, setPeople] = useState([]);
@@ -14,8 +16,8 @@ const PersonManaging = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [peoplePerPage] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
-
     const [isEdit, setIsEdit] = useState(false);
+    const [notification, setNotification] = useState(null);
 
     useEffect(() => {
         fetchPeople();
@@ -26,8 +28,6 @@ const PersonManaging = () => {
         try {
             const response = await authFetch(`${GET_PERSONS}`);
             const data = await response.json();
-            console.log(data);
-
             if (Array.isArray(data)) {
                 setPeople(data);
                 setTotalPages(Math.ceil(data.length / peoplePerPage));
@@ -39,6 +39,10 @@ const PersonManaging = () => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleNotification = (message, type) => {
+        setNotification({ message, type });
     };
 
     const handleSave = async (newPerson) => {
@@ -53,7 +57,6 @@ const PersonManaging = () => {
             }
         )
     };
-
 
     const handleDelete = async (id) => {
         if (window.confirm("А ТЫ УВЕРЕН, ЧТО НЕ ПРОМАХНУЛСЯ, СУКА?")) {
@@ -122,14 +125,16 @@ const PersonManaging = () => {
                 <table>
                     <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Eye Color</th>
-                        <th>Hair Color</th>
-                        <th>Height</th>
-                        <th>Weight</th>
-                        <th>Passport ID</th>
-                        <th>Actions</th>
+                        <th>ИД</th>
+                        <th>Имя</th>
+                        <th>Цвет глаз</th>
+                        <th>Цвет волос</th>
+                        <th>Рост</th>
+                        <th>Вес</th>
+                        <th>Паспорт ИД</th>
+                        <th>Локация</th>
+                        <th>Создал</th>
+                        <th>Действия</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -142,21 +147,15 @@ const PersonManaging = () => {
                             <td>{pers.height}</td>
                             <td>{pers.weight}</td>
                             <td>{pers.passportID}</td>
+                            <td>{pers.location.name}</td>
+                            <td>{pers.creator.username}</td>
                             <td>
                                 <button onClick={() => {
-                                    setIsEdit(true)
+                                    setIsEdit(true);
                                     setIsFormVisible(true);
-                                    let foundPerson = people.find(person => person.id === pers.id);
-                                    if(foundPerson) {
-                                        console.log(foundPerson);
-                                        setSelectedPerson(foundPerson)
-                                    }else {
-                                        console.error("Impossible person with id: ", pers.id);
-                                        setIsEdit(false);
-                                        setSelectedPerson(null);
-                                    }
-                                }
-                                }>Изменить данные
+                                    setSelectedPerson(pers);
+                                }}>
+                                    Изменить данные
                                 </button>
                                 <button onClick={() => handleDelete(pers.id)}>Удалить</button>
                             </td>
@@ -171,10 +170,19 @@ const PersonManaging = () => {
                     selectedPerson={selectedPerson}
                     onClose={handleFormClose}
                     onSubmit={isEdit ? handleEdit : handleSave}
+                    showNotification={handleNotification}
                 />
             </Modal>
+
+            {notification && (
+                <Notification
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
         </div>
     );
-}
+};
 
 export default PersonManaging;
