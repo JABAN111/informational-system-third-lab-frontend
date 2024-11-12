@@ -18,4 +18,16 @@ export const CREATE_NEW_GROUP = `${SERVER_URL}/${API_STUDY_GROUP}/create-new-gro
 export const DELETE_GROUP = `${SERVER_URL}/${API_STUDY_GROUP}/delete-group-by-id`
 export const UPDATE_GROUP = `${SERVER_URL}/${API_STUDY_GROUP}/update-group-by-id`
 
+export const GROUP_UP_BY_FORM_OF_EDUCATION = `${SERVER_URL}/${API_STUDY_GROUP}/count/education-form`
+export const DELETE_GROUP_BY_ADMIN = `${SERVER_URL}/${API_STUDY_GROUP}/delete/by-group-admin`
+export const GET_LIST_AVERAGES = `${SERVER_URL}/${API_STUDY_GROUP}/get-unique-average-marks`
+export const GET_TOTAL_EXPELLED_STUDENTS = `${SERVER_URL}/${API_STUDY_GROUP}/total-expelled-students`
+export const UPDATE_GROUP_ADMIN = `${SERVER_URL}/${API_STUDY_GROUP}/update-admin`
+
 export const REQUEST_ADMIN = "request_admin"
+
+const ADMIN_API = `api/${API_VERSION}/admin/console`
+export const GET_ALL_ADMINS = `${SERVER_URL}/${ADMIN_API}/get-all`
+export const REJECT_ADMIN = `${SERVER_URL}/${ADMIN_API}/reject`
+export const APPROVE_ADMIN = `${SERVER_URL}/${ADMIN_API}/approve`
+

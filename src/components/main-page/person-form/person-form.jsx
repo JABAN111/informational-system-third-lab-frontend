@@ -43,13 +43,14 @@ const PersonForm = ({selectedPerson, onSubmit, onClose, showNotification}) => {
             setWeight(selectedPerson.weight || 0);
             setPassportID(selectedPerson.passportID || '');
             setNationality(selectedPerson.nationality || 'RUSSIA');
+
         }
     }, [selectedPerson]);
 
     async function handleSubmit(e) {
         e.preventDefault();
 
-        let person = {
+        const person = {
             ...(selectedPerson?.id && { id: selectedPerson.id }),
             name: personName,
             eyeColor: eyeColor,
@@ -62,22 +63,28 @@ const PersonForm = ({selectedPerson, onSubmit, onClose, showNotification}) => {
         }
 
         const submitValue = onSubmit(person);
-        if(!submitValue) {
-            console.log("непраивльное значение submit value")
+        if (!submitValue) {
+            console.log("неправильное значение submit value");
             return;
         }
 
-        submitValue.then(res => {
-
-                if (res.status === 200 || res.status === 201) {
-                    showNotification("ура, победа","success")
-                    onClose();
-                } else {
-                    console.error("problems with submit: ", res);
-                }
+        try {
+            const res = await submitValue;
+            const responseData = await res.json(); // Получаем JSON-данные из ответа
+            if (res.status === 200 || res.status === 201) {
+                const message = responseData.message || "Успех";
+                console.log(message);
+                showNotification(message, "success"); // Передаем message в уведомление
+                onClose();
+            } else {
+                const errorMessage = responseData.message || "Ошибка выполнения запроса";
+                console.error("Проблемы с отправкой:", errorMessage);
+                showNotification(`Ошибка: ${errorMessage}`, "error");
             }
-        )
-        ;
+        } catch (error) {
+            console.error("Ошибка запроса:", error);
+            showNotification("Не удалось выполнить запрос", "error");
+        }
     }
 
     return (

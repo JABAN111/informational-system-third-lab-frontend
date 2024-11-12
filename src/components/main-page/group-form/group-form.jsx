@@ -3,7 +3,7 @@ import { CREATE_NEW_GROUP, GET_PERSONS } from "../../../config";
 import "./group-form.css";
 import authFetch from "../../../utils/netUitls";
 
-const GroupForm = ({ selectedGroup, onSubmit, onClose }) => {
+const GroupForm = ({ selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotification }) => {
     const [groupName, setGroupName] = useState("");
     const [studentsCount, setStudentsCount] = useState(0);
     const [groupPotentialAdmin, setGroupPotentialAdmin] = useState([]);
@@ -46,6 +46,7 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose }) => {
     },[])
 
     useEffect(() => {
+        console.log("значение только эдита: ",editOnlyAdmin);
         if (groupPotentialAdmin.length > 0 && !chosenAdmin) {
             setChosenAdmin(groupPotentialAdmin[0]);
             console.log("дефолтно выбранный админ: ", groupPotentialAdmin[0]);
@@ -54,18 +55,43 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose }) => {
 
     const fetchPeople = async () => {
         try {
-            const response = await authFetch(`${GET_PERSONS}`);
+            console.log("передана группа: ")
+            console.info(selectedGroup)
+
+
+            const response = await authFetch(GET_PERSONS);
             const data = await response.json();
-            if (Array.isArray(data)) {
-                setGroupPotentialAdmin(data); // Сохраняем массив людей
+
+            if (data.body && Array.isArray(data.body.content)) { // Проверка, что data.body.content — массив
+                setGroupPotentialAdmin(data.body.content);
+
             } else {
-                console.error("Полученные данные не являются массивом:", data);
+                console.error("Полученные данные не содержат ожидаемый массив content:", data);
+                setGroupPotentialAdmin([]); // Устанавливаем пустой массив в случае ошибки
             }
         } catch (error) {
-            console.error("Error fetching data:", error);
+            console.error("Ошибка при получении данных:", error);
+            setGroupPotentialAdmin([]); // Устанавливаем пустой массив в случае ошибки
         }
     };
 
+
+    // const fetchPeople = async () => {
+    //     // setIsLoading(true);
+    //     try {
+    //         const response = await authFetch(`${GET_PERSONS}`);
+    //         const data = await response.json();
+    //         setGroupPotentialAdmin(data.body);
+    //         // if (data && Array.isArray(data.body)) {
+    //         // setPeople(data.body); // Устанавливаем `data.body` вместо `data`
+    //         // setTotalPages(Math.ceil(data.body.length / peoplePerPage));
+    //         // } else {
+    //         //     console.error("Полученные данные не являются массивом:", data);
+    //         // }
+    //     } catch (error) {
+    //         console.error("Error fetching data:", error);
+    //     }
+    // }
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -86,24 +112,45 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose }) => {
         };
         console.log("sending: ", newGroup);
 
-        const submitValue = onSubmit(newGroup);
+        const submitValue = onSubmit(newGroup, chosenAdmin);
         console.log(submitValue.json);
         if(!submitValue) {
             console.log("непраивльное значение submit value")
             return;
         }
 
-        submitValue.then(res => {
-                if (res.status === 200 || res.status === 201) {
-                    onClose();
-                } else {
-                    console.error("problems with submit: ", res);
-                }
+        try{
+            const res = await submitValue;
+            const responseData = await res.json();
+
+            if(res.status === 200 || res.status === 201) {
+                const message = responseData.message || "Успех";
+                console.log(message);
+                showNotification(message, "success"); // Передаем message в уведомление
+                onClose();
             }
-        );
+            else {
+                const errorMessage = responseData.message || "Ошибка выполнения запроса";
+                console.error("Проблемы с отправкой:", errorMessage);
+                showNotification(`Ошибка: ${errorMessage}`, "error");
+            }
+        } catch (error) {
+            console.error("Ошибка запроса:", error);
+            // showNotification("Не удалось выполнить запрос", "error");
+        }
     }
 
-    return (
+        // submitValue.then(res => {
+        //         if (res.status === 200 || res.status === 201) {
+        //             onClose();
+        //         } else {
+        //             console.error("problems with submit: ", res);
+        //         }
+        //     }
+        // );
+
+
+    const notEditOnlyAdmin =  (
         <div className="group-form">
             <h2>{selectedGroup ? 'Редактировать группу' : 'Добавить группу'}</h2>
             <form onSubmit={handleSubmit}>
@@ -197,6 +244,7 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose }) => {
                         value={averageMark}
                         min={1}
                         max={5}
+                        step={0.1}
                         onChange={(e) => setAverageMark(Number(e.target.value))}
                         required
                     />
@@ -241,6 +289,40 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose }) => {
             </form>
         </div>
     );
+
+    const onlyAdmin = (
+        <form onSubmit={handleSubmit}>
+            <label>
+                Выбрать нового админа группы:
+                <select
+                    id="person-admin"
+                    onChange={(e) => {
+                        const selectedId = e.target.value;
+
+                        let chosenAdmin = groupPotentialAdmin.find(person => person.id === Number(selectedId));
+                        if (!chosenAdmin) {
+                            chosenAdmin = groupPotentialAdmin[0];
+                        }
+                        setChosenAdmin(chosenAdmin);
+                    }}
+                >
+                    {groupPotentialAdmin.map((person) => (
+                        <option key={person.id} value={person.id}>
+                            {person.name}
+                        </option>
+                    ))}
+                </select>
+            </label>
+            <button type="submit">Сохранить</button>
+
+        </form>
+    )
+
+
+    if (!editOnlyAdmin)
+        return notEditOnlyAdmin;
+    else
+        return (onlyAdmin)
 };
 
 export default GroupForm;

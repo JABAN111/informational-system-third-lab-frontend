@@ -1,15 +1,15 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import './group-managing.css';
 import {
     CREATE_NEW_GROUP,
     DELETE_GROUP,
     GET_ALL_GROUPS,
-    UPDATE_GROUP,
+    UPDATE_GROUP, UPDATE_GROUP_ADMIN,
 } from '../../../config';
 import GroupForm from "../group-form/group-form";
 import Modal from "../modal";
 import authFetch from "../../../utils/netUitls";
-import PersonForm from "../person-form/person-form";
+import Notification from "../../notification-component/notification";
 
 const GroupManaging = () => {
     const [studyGroups, setStudyGroups] = useState([]);
@@ -18,30 +18,24 @@ const GroupManaging = () => {
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [isFormVisible, setIsFormVisible] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [groupsPerPage] = useState(10);
-    const [pageSize, setPageSize] = useState(10);      // Количество элементов на странице
-    const [totalPages, setTotalPages] = useState(1);   // Общее количество страниц
-
+    const [pageSize, setPageSize] = useState(10); // Количество элементов на странице
+    const [totalPages, setTotalPages] = useState(1); // Общее количество страниц
+    const [notification, setNotification] = useState(null);
     const [isEdit, setIsEdit] = useState(false);
-
-
-    // useEffect(() => {
-    //     fetchGroups(currentPage, groupsPerPage);
-    // }, [currentPage]);
+    const [isEditOnlyAdmin, setIsEditOnlyAdmin] = useState(false);
 
     useEffect(() => {
         fetchGroups();
-    }, [currentPage, pageSize]); // Обновляем данные при смене страницы или размера страницы
+    }, [currentPage, pageSize]);
 
     const fetchGroups = async () => {
         setIsLoading(true);
         try {
-            const response = await authFetch(
-                `${GET_ALL_GROUPS}`)
+            const response = await authFetch(`${GET_ALL_GROUPS}?page=${currentPage - 1}&size=${pageSize}`);
             const data = await response.json();
-            //
-            setStudyGroups(data); // Предположим, что сервер возвращает группы под ключом 'groups'
-            // setTotalPages(data.totalPages); // Предположим, что сервер возвращает общее количество страниц
+
+            setStudyGroups(data.body.content); // данные групп
+            setTotalPages(data.body.totalPages); // обновляем общее количество страниц
         } catch (error) {
             console.error("Ошибка при получении данных:", error);
         } finally {
@@ -49,42 +43,52 @@ const GroupManaging = () => {
         }
     };
 
+    const handleNotification = (message, type) => {
+        setNotification({ message, type });
+    };
+
     const handleDelete = async (id) => {
-        if (window.confirm("Вы уверены, что хотите удалить эту группу?")) {
-            try {
-                await authFetch(`${DELETE_GROUP}/${id}`, {method: 'DELETE'});
-                fetchGroups(currentPage, groupsPerPage);
-            } catch (error) {
-                console.error("Ошибка при удалении группы:", error);
+        try {
+            const response = await authFetch(`${DELETE_GROUP}/${id}`, { method: 'DELETE' });
+            const data = await response.json();
+
+            if (response.ok) {
+                handleNotification(data.message, "success");
+                fetchGroups();
+            } else if (response.status === 403) {
+                handleNotification(`Ошибка: ${data.message}`, "error");
             }
+        } catch (error) {
+            console.error("Ошибка при удалении:", error);
+            handleNotification("Произошла ошибка при удалении", "error");
         }
     };
 
     const handleSave = async (newGroup) => {
-        return await authFetch(
-            `${CREATE_NEW_GROUP}`,
-            {
-                method: 'POST',
-                headers: {
-                    "content-type": "application/json",
-                },
-                body: JSON.stringify(newGroup),
-            }
-        )
+        return await authFetch(`${CREATE_NEW_GROUP}`, {
+            method: 'POST',
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(newGroup),
+        });
     };
 
     const handleEdit = async (group) => {
-        return await authFetch(
-            `${UPDATE_GROUP}/${group.id}`,
-            {
-                method: 'PATCH',
-                headers: {
-                    "content-type": "application/json",
-                },
-                body: JSON.stringify(group)
-            }
-        )
+        return await authFetch(`${UPDATE_GROUP}/${group.id}`, {
+            method: 'PATCH',
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(group),
+        });
     };
+    const handleEditAdminOnly = async (group, newAdmin) => {
+        console.log("здесь пиздец")
+        console.log(group, newAdmin);
+
+        return await authFetch(`${UPDATE_GROUP_ADMIN}?groupId=${group.id}&adminId=${newAdmin.id}`, {
+            method: 'PATCH',
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(group)
+        })
+    }
 
     const handleFilterChange = (e) => {
         setFilter(e.target.value);
@@ -98,24 +102,36 @@ const GroupManaging = () => {
         setIsFormVisible(false);
         setSelectedGroup(null);
         setIsEdit(false);
-        fetchGroups(currentPage, groupsPerPage);
+        setIsEditOnlyAdmin(false);
+        fetchGroups();
     };
 
     const nextPage = () => {
-        setCurrentPage((prevPage) => prevPage + 1);
+        if (currentPage < totalPages) setCurrentPage(prevPage => prevPage + 1);
     };
 
     const prevPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage((prevPage) => prevPage - 1);
-        }
+        if (currentPage > 1) setCurrentPage(prevPage => prevPage - 1);
     };
+
+
+
+    const handleModalOpen = () => {
+        if(isEdit && isEditOnlyAdmin) {
+            return handleEditAdminOnly
+        }
+        if (isEdit && !isEditOnlyAdmin) {
+            return handleEdit
+        }else{
+            return handleSave
+        }
+
+    }
 
     return (
         <div className="main-page">
             <h1>Список учебных групп</h1>
 
-            {/* Поле для выбора количества элементов на странице */}
             <label>
                 Элементов на странице:
                 <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))}>
@@ -160,8 +176,7 @@ const GroupManaging = () => {
                                 <td>{group.studentsCount}</td>
                                 <td>{group.groupAdmin.name}</td>
                                 <td>
-                                    <button onClick={() =>
-                                    {
+                                    <button onClick={() => {
                                         setIsEdit(true);
                                         setIsFormVisible(true);
 
@@ -169,7 +184,6 @@ const GroupManaging = () => {
                                         if(foundGroup) {
                                             setSelectedGroup(foundGroup);
                                         }else {
-                                            console.error("Нихуя мы не нашли, чебурашка");
                                             setIsEdit(false);
                                             setSelectedGroup(null);
                                         }
@@ -177,6 +191,20 @@ const GroupManaging = () => {
                                     >
                                         Редактировать
                                     </button>
+                                    <button onClick={() => {
+                                        setIsEdit(true);
+                                        setIsEditOnlyAdmin(true)
+                                        setIsFormVisible(true);
+
+                                        let foundGroup = studyGroups.find((study) => study.id === group.id);
+                                        if(foundGroup) {
+                                            setSelectedGroup(foundGroup);
+                                        }else {
+                                            setIsEdit(false);
+                                            setIsEditOnlyAdmin(false)
+                                            setSelectedGroup(null);
+                                        }
+                                    }} >Сменить админа</button>
                                     <button onClick={() => handleDelete(group.id)}>Удалить</button>
                                 </td>
                             </tr>
@@ -184,21 +212,10 @@ const GroupManaging = () => {
                         </tbody>
                     </table>
 
-                    {/* Элементы управления пагинацией */}
                     <div className="pagination">
-                        <button
-                            onClick={() => setCurrentPage(currentPage - 1)}
-                            disabled={currentPage === 1}
-                        >
-                            Назад
-                        </button>
+                        <button onClick={prevPage} disabled={currentPage === 1}>Назад</button>
                         <span>Страница {currentPage} из {totalPages}</span>
-                        <button
-                            onClick={() => setCurrentPage(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                        >
-                            Вперед
-                        </button>
+                        <button onClick={nextPage} disabled={currentPage === totalPages}>Вперед</button>
                     </div>
                 </>
             )}
@@ -207,9 +224,19 @@ const GroupManaging = () => {
                 <GroupForm
                     selectedGroup={selectedGroup}
                     onClose={handleFormClose}
-                    onSubmit={isEdit ? handleEdit : handleSave}
+                    onSubmit={handleModalOpen()}
+                    editOnlyAdmin={isEditOnlyAdmin}
+                    showNotification={handleNotification}
                 />
             </Modal>
+
+            {notification && (
+                <Notification
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
         </div>
     );
 }
