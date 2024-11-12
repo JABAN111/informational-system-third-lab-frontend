@@ -3,6 +3,7 @@ import './mainPage.css';
 import GroupManaging from "./groups-managing/group-managing";
 import PersonManaging from "./person-managing/person-managing";
 import AdminPanel from "./admin-panel/admin-panel";
+import FeaturesPanel from "./features/features-panel";
 
 const MainPage = () => {
     const [activeTab, setActiveTab] = useState('groupManagement'); // По умолчанию выбран раздел управления группами
@@ -15,6 +16,9 @@ const MainPage = () => {
                 return <GroupManaging />;
             case 'personManagement':
                 return <PersonManaging />;
+            case 'features':
+                return <>
+                    <FeaturesPanel/></>
             default:
                 return <GroupManaging/>;
         }
@@ -42,6 +46,12 @@ const MainPage = () => {
                             onClick={() => setActiveTab('personManagement')}
                         >
                             Управление людьми
+                        </li>
+                        <li
+                            className={activeTab === 'features' ? 'active' : ''}
+                            onClick={() => setActiveTab('features')}
+                        >
+                            Дополнительный функционал
                         </li>
                     </ul>
                 </nav>

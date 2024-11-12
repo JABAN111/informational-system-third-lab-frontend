@@ -4,7 +4,7 @@ import {
     CREATE_NEW_GROUP,
     DELETE_GROUP,
     GET_ALL_GROUPS,
-    UPDATE_GROUP,
+    UPDATE_GROUP, UPDATE_GROUP_ADMIN,
 } from '../../../config';
 import GroupForm from "../group-form/group-form";
 import Modal from "../modal";
@@ -22,6 +22,7 @@ const GroupManaging = () => {
     const [totalPages, setTotalPages] = useState(1); // Общее количество страниц
     const [notification, setNotification] = useState(null);
     const [isEdit, setIsEdit] = useState(false);
+    const [isEditOnlyAdmin, setIsEditOnlyAdmin] = useState(false);
 
     useEffect(() => {
         fetchGroups();
@@ -78,6 +79,16 @@ const GroupManaging = () => {
             body: JSON.stringify(group),
         });
     };
+    const handleEditAdminOnly = async (group, newAdmin) => {
+        console.log("здесь пиздец")
+        console.log(group, newAdmin);
+
+        return await authFetch(`${UPDATE_GROUP_ADMIN}?groupId=${group.id}&adminId=${newAdmin.id}`, {
+            method: 'PATCH',
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(group)
+        })
+    }
 
     const handleFilterChange = (e) => {
         setFilter(e.target.value);
@@ -91,6 +102,7 @@ const GroupManaging = () => {
         setIsFormVisible(false);
         setSelectedGroup(null);
         setIsEdit(false);
+        setIsEditOnlyAdmin(false);
         fetchGroups();
     };
 
@@ -101,6 +113,20 @@ const GroupManaging = () => {
     const prevPage = () => {
         if (currentPage > 1) setCurrentPage(prevPage => prevPage - 1);
     };
+
+
+
+    const handleModalOpen = () => {
+        if(isEdit && isEditOnlyAdmin) {
+            return handleEditAdminOnly
+        }
+        if (isEdit && !isEditOnlyAdmin) {
+            return handleEdit
+        }else{
+            return handleSave
+        }
+
+    }
 
     return (
         <div className="main-page">
@@ -158,7 +184,6 @@ const GroupManaging = () => {
                                         if(foundGroup) {
                                             setSelectedGroup(foundGroup);
                                         }else {
-                                            console.error("Нихуя мы не нашли, чебурашка");
                                             setIsEdit(false);
                                             setSelectedGroup(null);
                                         }
@@ -166,6 +191,20 @@ const GroupManaging = () => {
                                     >
                                         Редактировать
                                     </button>
+                                    <button onClick={() => {
+                                        setIsEdit(true);
+                                        setIsEditOnlyAdmin(true)
+                                        setIsFormVisible(true);
+
+                                        let foundGroup = studyGroups.find((study) => study.id === group.id);
+                                        if(foundGroup) {
+                                            setSelectedGroup(foundGroup);
+                                        }else {
+                                            setIsEdit(false);
+                                            setIsEditOnlyAdmin(false)
+                                            setSelectedGroup(null);
+                                        }
+                                    }} >Сменить админа</button>
                                     <button onClick={() => handleDelete(group.id)}>Удалить</button>
                                 </td>
                             </tr>
@@ -185,7 +224,8 @@ const GroupManaging = () => {
                 <GroupForm
                     selectedGroup={selectedGroup}
                     onClose={handleFormClose}
-                    onSubmit={isEdit ? handleEdit : handleSave}
+                    onSubmit={handleModalOpen()}
+                    editOnlyAdmin={isEditOnlyAdmin}
                     showNotification={handleNotification}
                 />
             </Modal>

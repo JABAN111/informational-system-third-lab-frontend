@@ -3,7 +3,7 @@ import { CREATE_NEW_GROUP, GET_PERSONS } from "../../../config";
 import "./group-form.css";
 import authFetch from "../../../utils/netUitls";
 
-const GroupForm = ({ selectedGroup, onSubmit, onClose, showNotification }) => {
+const GroupForm = ({ selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotification }) => {
     const [groupName, setGroupName] = useState("");
     const [studentsCount, setStudentsCount] = useState(0);
     const [groupPotentialAdmin, setGroupPotentialAdmin] = useState([]);
@@ -46,6 +46,7 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose, showNotification }) => {
     },[])
 
     useEffect(() => {
+        console.log("значение только эдита: ",editOnlyAdmin);
         if (groupPotentialAdmin.length > 0 && !chosenAdmin) {
             setChosenAdmin(groupPotentialAdmin[0]);
             console.log("дефолтно выбранный админ: ", groupPotentialAdmin[0]);
@@ -111,7 +112,7 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose, showNotification }) => {
         };
         console.log("sending: ", newGroup);
 
-        const submitValue = onSubmit(newGroup);
+        const submitValue = onSubmit(newGroup, chosenAdmin);
         console.log(submitValue.json);
         if(!submitValue) {
             console.log("непраивльное значение submit value")
@@ -149,7 +150,7 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose, showNotification }) => {
         // );
 
 
-    return (
+    const notEditOnlyAdmin =  (
         <div className="group-form">
             <h2>{selectedGroup ? 'Редактировать группу' : 'Добавить группу'}</h2>
             <form onSubmit={handleSubmit}>
@@ -288,6 +289,40 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose, showNotification }) => {
             </form>
         </div>
     );
+
+    const onlyAdmin = (
+        <form onSubmit={handleSubmit}>
+            <label>
+                Выбрать нового админа группы:
+                <select
+                    id="person-admin"
+                    onChange={(e) => {
+                        const selectedId = e.target.value;
+
+                        let chosenAdmin = groupPotentialAdmin.find(person => person.id === Number(selectedId));
+                        if (!chosenAdmin) {
+                            chosenAdmin = groupPotentialAdmin[0];
+                        }
+                        setChosenAdmin(chosenAdmin);
+                    }}
+                >
+                    {groupPotentialAdmin.map((person) => (
+                        <option key={person.id} value={person.id}>
+                            {person.name}
+                        </option>
+                    ))}
+                </select>
+            </label>
+            <button type="submit">Сохранить</button>
+
+        </form>
+    )
+
+
+    if (!editOnlyAdmin)
+        return notEditOnlyAdmin;
+    else
+        return (onlyAdmin)
 };
 
 export default GroupForm;
