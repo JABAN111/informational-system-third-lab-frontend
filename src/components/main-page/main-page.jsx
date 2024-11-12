@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './mainPage.css';
 import GroupManaging from "./groups-managing/group-managing";
 import PersonManaging from "./person-managing/person-managing";
+import AdminPanel from "./admin-panel/admin-panel";
 
 const MainPage = () => {
     const [activeTab, setActiveTab] = useState('groupManagement'); // По умолчанию выбран раздел управления группами
@@ -9,8 +10,7 @@ const MainPage = () => {
     const renderContent = () => {
         switch (activeTab) {
             case 'admin':
-                return <h1>админка</h1>
-                // return <AdminPanel />;
+                return <AdminPanel/>;
             case 'groupManagement':
                 return <GroupManaging />;
             case 'personManagement':

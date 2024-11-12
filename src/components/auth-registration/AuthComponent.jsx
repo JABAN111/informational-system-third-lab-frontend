@@ -2,9 +2,13 @@ import React, {useEffect, useState} from 'react';
 import './auth.css';
 import {CREATE_USER, LOGIN, SERVER_URL} from "../../config";
 import {useNavigate} from "react-router-dom";
+import Notification from "../notification-component/notification";
 
 function AuthComponent() {
     const navigate = useNavigate();
+
+    const [notification, setNotification] = useState(null);
+
 
     const [isLogin, setIsLogin] = useState(true); // Состояние для переключения между авторизацией и регистрацией
 
@@ -65,12 +69,6 @@ function AuthComponent() {
     }
 
     const registrationRequest = () => {
-        //todo дописать логику админа
-        let isUserAdmin = false;
-        if (userRole === "Администратор") {
-            isUserAdmin = sendRequestForAdminPrivilege()
-            console.log("администраторов временно нет, ", isUserAdmin);
-        }
 
         let roleToServ;
         switch (userRole) {
@@ -101,15 +99,15 @@ function AuthComponent() {
             res => res.json()
         ).then(
             data => {
-                if (data.token) { // Проверяем, что токен получен
-                    sessionStorage.setItem('sessionId', data.token); // Сохраняем токен в sessionStorage
-                    console.log("Токен сохранён в sessionStorage:", data.token);
+                if (data.body.token) { // Проверяем, что токен получен
+                    sessionStorage.setItem('sessionId', data.body.token); // Сохраняем токен в sessionStorage
+                    console.log("Токен сохранён в sessionStorage:", data.body.token);
                     navigate("/main-page"); // Переходим на основную страницу после успешного сохранения
                 } else {
-                    console.log("Ошибка: токен не получен.");
+                    handleNotification(data.message,"error");
                 }
             })
-            .catch(err => console.log("Ошибка запроса:", err));
+            .catch(err => handleNotification(`ошибка при запросе: ${err.message}`, "error"));
     }
 
     const sendAuthRequest = () => {
@@ -129,14 +127,22 @@ function AuthComponent() {
         })
             .then(res => res.json())
             .then(data => {
-                if (data.token) {
-                    sessionStorage.setItem('sessionId', data.token);
-                    console.log("Токен сохранён в sessionStorage:", data.token);
-                    // navigate("/main-page"); // Переходим на основную страницу после успешного сохранения
+                if (data.body.token) {
+                    sessionStorage.setItem('sessionId', data.body.token);
+                    console.log("Токен сохранён в sessionStorage:", data.body.token);
+                    navigate("/main-page");
                 }
             })
-            .catch(err => console.error(err));
+            .catch(
+                err => handleNotification("пизда пизда пизда","error")
+            );
     };
+
+    const handleNotification = (message, type) => {
+        console.log(message);
+        setNotification({ message, type });
+    };
+
 
     return (
         <div className="auth-container">
@@ -177,7 +183,15 @@ function AuthComponent() {
                     </button>
                 </div>
             </div>
+            {notification && (
+                <Notification
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
         </div>
+
     );
 }
 

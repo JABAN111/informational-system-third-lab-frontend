@@ -1,0 +1,43 @@
+.admin-panel {
+    padding: 20px;
+}
+
+.admin-panel h2 {
+    margin-bottom: 15px;
+}
+
+.admin-panel input[type="text"] {
+    margin-bottom: 15px;
+    padding: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.admin-panel table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-panel th, .admin-panel td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.admin-panel th {
+    background-color: #f4f4f4;
+}
+
+.admin-panel button {
+    margin-right: 5px;
+}
+
+.pagination button {
+    margin: 5px;
+    padding: 5px 10px;
+}
+
+.pagination button.active {
+    background-color: #007bff;
+    color: white;
+}

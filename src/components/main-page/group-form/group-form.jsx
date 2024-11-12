@@ -3,7 +3,7 @@ import { CREATE_NEW_GROUP, GET_PERSONS } from "../../../config";
 import "./group-form.css";
 import authFetch from "../../../utils/netUitls";
 
-const GroupForm = ({ selectedGroup, onSubmit, onClose }) => {
+const GroupForm = ({ selectedGroup, onSubmit, onClose, showNotification }) => {
     const [groupName, setGroupName] = useState("");
     const [studentsCount, setStudentsCount] = useState(0);
     const [groupPotentialAdmin, setGroupPotentialAdmin] = useState([]);
@@ -54,18 +54,43 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose }) => {
 
     const fetchPeople = async () => {
         try {
-            const response = await authFetch(`${GET_PERSONS}`);
+            console.log("передана группа: ")
+            console.info(selectedGroup)
+
+
+            const response = await authFetch(GET_PERSONS);
             const data = await response.json();
-            if (Array.isArray(data)) {
-                setGroupPotentialAdmin(data); // Сохраняем массив людей
+
+            if (data.body && Array.isArray(data.body.content)) { // Проверка, что data.body.content — массив
+                setGroupPotentialAdmin(data.body.content);
+
             } else {
-                console.error("Полученные данные не являются массивом:", data);
+                console.error("Полученные данные не содержат ожидаемый массив content:", data);
+                setGroupPotentialAdmin([]); // Устанавливаем пустой массив в случае ошибки
             }
         } catch (error) {
-            console.error("Error fetching data:", error);
+            console.error("Ошибка при получении данных:", error);
+            setGroupPotentialAdmin([]); // Устанавливаем пустой массив в случае ошибки
         }
     };
 
+
+    // const fetchPeople = async () => {
+    //     // setIsLoading(true);
+    //     try {
+    //         const response = await authFetch(`${GET_PERSONS}`);
+    //         const data = await response.json();
+    //         setGroupPotentialAdmin(data.body);
+    //         // if (data && Array.isArray(data.body)) {
+    //         // setPeople(data.body); // Устанавливаем `data.body` вместо `data`
+    //         // setTotalPages(Math.ceil(data.body.length / peoplePerPage));
+    //         // } else {
+    //         //     console.error("Полученные данные не являются массивом:", data);
+    //         // }
+    //     } catch (error) {
+    //         console.error("Error fetching data:", error);
+    //     }
+    // }
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -93,15 +118,36 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose }) => {
             return;
         }
 
-        submitValue.then(res => {
-                if (res.status === 200 || res.status === 201) {
-                    onClose();
-                } else {
-                    console.error("problems with submit: ", res);
-                }
+        try{
+            const res = await submitValue;
+            const responseData = await res.json();
+
+            if(res.status === 200 || res.status === 201) {
+                const message = responseData.message || "Успех";
+                console.log(message);
+                showNotification(message, "success"); // Передаем message в уведомление
+                onClose();
             }
-        );
+            else {
+                const errorMessage = responseData.message || "Ошибка выполнения запроса";
+                console.error("Проблемы с отправкой:", errorMessage);
+                showNotification(`Ошибка: ${errorMessage}`, "error");
+            }
+        } catch (error) {
+            console.error("Ошибка запроса:", error);
+            // showNotification("Не удалось выполнить запрос", "error");
+        }
     }
+
+        // submitValue.then(res => {
+        //         if (res.status === 200 || res.status === 201) {
+        //             onClose();
+        //         } else {
+        //             console.error("problems with submit: ", res);
+        //         }
+        //     }
+        // );
+
 
     return (
         <div className="group-form">
@@ -197,6 +243,7 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose }) => {
                         value={averageMark}
                         min={1}
                         max={5}
+                        step={0.1}
                         onChange={(e) => setAverageMark(Number(e.target.value))}
                         required
                     />

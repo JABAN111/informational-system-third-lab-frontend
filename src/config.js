@@ -19,3 +19,8 @@ export const DELETE_GROUP = `${SERVER_URL}/${API_STUDY_GROUP}/delete-group-by-id
 export const UPDATE_GROUP = `${SERVER_URL}/${API_STUDY_GROUP}/update-group-by-id`
 
 export const REQUEST_ADMIN = "request_admin"
+
+const ADMIN_API = `api/${API_VERSION}/admin/console`
+export const GET_ALL_ADMINS = `${SERVER_URL}/${ADMIN_API}/get-all`
+export const REJECT_ADMIN = `${SERVER_URL}/${ADMIN_API}/reject`
+export const APPROVE_ADMIN = `${SERVER_URL}/${ADMIN_API}/approve`
