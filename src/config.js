@@ -23,6 +23,7 @@ export const DELETE_GROUP_BY_ADMIN = `${SERVER_URL}/${API_STUDY_GROUP}/delete/by
 export const GET_LIST_AVERAGES = `${SERVER_URL}/${API_STUDY_GROUP}/get-unique-average-marks`
 export const GET_TOTAL_EXPELLED_STUDENTS = `${SERVER_URL}/${API_STUDY_GROUP}/total-expelled-students`
 export const UPDATE_GROUP_ADMIN = `${SERVER_URL}/${API_STUDY_GROUP}/update-admin`
+export const GET_FILTERED_GROUPS = `${SERVER_URL}/${API_STUDY_GROUP}/filter`
 
 export const REQUEST_ADMIN = "request_admin"
 
