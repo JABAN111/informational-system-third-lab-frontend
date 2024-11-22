@@ -10,6 +10,7 @@ body, html {
     width: 100%;
 }
 
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -106,4 +107,98 @@ th, td {
 
 th {
     background-color: #f2f2f2;
+}
+
+#account-data {
+    position: fixed; /* Фиксируем блок */
+    bottom: 20px; /* Отступ от нижнего края */
+    left: 20px; /* Отступ от левого края */
+    background-color: #2c2f33; /* Темный фон для лучшего контраста */
+    color: #f5f5f5; /* Светлый цвет текста */
+    padding: 15px; /* Увеличенные отступы */
+    border-radius: 10px; /* Более мягкие закругления */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Больше тени для глубины */
+    z-index: 1000; /* Поверх всех элементов */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    font-family: 'Arial', sans-serif; /* Универсальный шрифт */
+    gap: 10px; /* Расстояние между элементами */
+}
+
+#account-data label {
+    font-size: 0.85rem; /* Размер текста метки */
+    color: #aaaaaa; /* Светло-серый для вспомогательного текста */
+    margin-bottom: 5px; /* Отступ под меткой */
+}
+
+#account-data p {
+    margin: 0; /* Сбрасываем отступы */
+    font-size: 1rem; /* Основной размер текста */
+    font-weight: bold; /* Жирный текст для акцента */
+    color: #77dd77; /* Мягкий зеленый цвет */
+}
+
+#username, #current-role {
+    color: #50c878; /* Уникальный зеленый для данных пользователя */
+}
+
+#button-to-leave {
+    align-self: stretch; /* Растянуть кнопку на всю ширину */
+    margin-top: 10px; /* Отступ сверху */
+}
+
+#account-data {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background-color: #2c2f33;
+    color: #f5f5f5;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Выравнивание по центру */
+    font-family: 'Arial', sans-serif;
+    gap: 10px;
+}
+
+#account-data button {
+    width: auto; /* Даем кнопке авто ширину */
+    padding: 10px;
+    background-color: #5865f2;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+#account-data button:hover {
+    background-color: #4752c4;
+    transform: scale(1.05);
+}
+
+#account-data button:active {
+    transform: scale(0.95);
+}
+
+#button-to-leave {
+    margin-top: 10px; /* Отступ для кнопки */
+}
+
+#username, #current-role {
+    margin-bottom: 10px; /* Отступ снизу для визуальной гармонии */
+}
+
+#username {
+    color: #50fa7b; /* Яркий зеленый для имени пользователя */
+}
+
+#current-role {
+    color: #8be9fd; /* Голубой оттенок для роли */
 }

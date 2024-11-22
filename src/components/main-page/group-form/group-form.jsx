@@ -1,20 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { CREATE_NEW_GROUP, GET_PERSONS } from "../../../config";
+import React, {useEffect, useState} from 'react';
+import {CREATE_NEW_GROUP, GET_PERSONS} from "../../../config";
 import "./group-form.css";
 import authFetch from "../../../utils/netUitls";
 
-const GroupForm = ({ selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotification }) => {
+const GroupForm = ({selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotification}) => {
     const [groupName, setGroupName] = useState("");
     const [studentsCount, setStudentsCount] = useState(0);
     const [groupPotentialAdmin, setGroupPotentialAdmin] = useState([]);
     const [chosenAdmin, setChosenAdmin] = useState(null);
-    const [coordinates, setCoordinates] = useState({ x: 0, y: 0 });
+    const [coordinates, setCoordinates] = useState({x: 0, y: 0});
     const [expelledStudentsCount, setExlledStudentsCount] = useState(0);
     const [transferredStudents, setTransferredStudents] = useState(0);
     const [formOfEducation, setFormOfEducation] = useState("FULL_TIME_EDUCATION");
     const [shouldBeExpelled, setShouldBeExpelled] = useState(0);
-    const [averageMark, setAverageMark] = useState(1);
+    const [averageMark, setAverageMark] = useState("1.1");
     const [semester, setSemester] = useState("SECOND");
+    const [averageMarkValue, setAverageMarkValue] = useState('');
+
 
     const formsOfEducation = {
         DISTANCE_EDUCATION: "дистанционное обучение",
@@ -29,12 +31,12 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotifi
         EIGHT: "Восьмой"
     };
 
-    useEffect(()=>{
-        if(selectedGroup){
+    useEffect(() => {
+        if (selectedGroup) {
             setGroupName(selectedGroup.name || '');
             setStudentsCount(selectedGroup.studentsCount || 0);
             setChosenAdmin(selectedGroup.chosenAdmin || null);
-            setCoordinates(selectedGroup.coordinates || {x:0,y:0});
+            setCoordinates(selectedGroup.coordinates || {x: 0, y: 0});
             setExlledStudentsCount(selectedGroup.expelledStudents || 0);
             setTransferredStudents(selectedGroup.transferredStudents || 0);
             setFormOfEducation(selectedGroup.formOfEducation || null);
@@ -43,10 +45,10 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotifi
             setSemester(selectedGroup.semester || "SECOND");
         }
         fetchPeople()
-    },[])
+    }, [])
 
     useEffect(() => {
-        console.log("значение только эдита: ",editOnlyAdmin);
+        console.log("значение только эдита: ", editOnlyAdmin);
         if (groupPotentialAdmin.length > 0 && !chosenAdmin) {
             setChosenAdmin(groupPotentialAdmin[0]);
             console.log("дефолтно выбранный админ: ", groupPotentialAdmin[0]);
@@ -55,43 +57,65 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotifi
 
     const fetchPeople = async () => {
         try {
-            console.log("передана группа: ")
-            console.info(selectedGroup)
-
-
             const response = await authFetch(GET_PERSONS);
             const data = await response.json();
 
-            if (data.body && Array.isArray(data.body.content)) { // Проверка, что data.body.content — массив
+            if (data.body && Array.isArray(data.body.content)) {
                 setGroupPotentialAdmin(data.body.content);
 
             } else {
-                console.error("Полученные данные не содержат ожидаемый массив content:", data);
-                setGroupPotentialAdmin([]); // Устанавливаем пустой массив в случае ошибки
+                setGroupPotentialAdmin([]);
             }
         } catch (error) {
-            console.error("Ошибка при получении данных:", error);
-            setGroupPotentialAdmin([]); // Устанавливаем пустой массив в случае ошибки
+            setGroupPotentialAdmin([]);
         }
     };
 
+    const handleChange = (e) => {
+        const newValue = e.target.value;
 
-    // const fetchPeople = async () => {
-    //     // setIsLoading(true);
-    //     try {
-    //         const response = await authFetch(`${GET_PERSONS}`);
-    //         const data = await response.json();
-    //         setGroupPotentialAdmin(data.body);
-    //         // if (data && Array.isArray(data.body)) {
-    //         // setPeople(data.body); // Устанавливаем `data.body` вместо `data`
-    //         // setTotalPages(Math.ceil(data.body.length / peoplePerPage));
-    //         // } else {
-    //         //     console.error("Полученные данные не являются массивом:", data);
-    //         // }
-    //     } catch (error) {
-    //         console.error("Error fetching data:", error);
+        // Регулярное выражение для форматов "0.1", "1,2" и других
+        const pattern = /^-?\d*[.,]?\d{0,2}$/;
+
+        if (pattern.test(newValue) || newValue === '') {
+            setAverageMarkValue(newValue); // Обновляем значение, если оно валидно
+        }
+    };
+
+    const handleBlur = () => {
+        // Автоматическая замена запятой на точку при потере фокуса, если требуется
+        setAverageMarkValue((prevValue) => prevValue.replace(',', '.'));
+    };
+
+
+    // const parseFloatRu = (text) => {
+    //     const cleanedText = text;
+    //
+    //     // Проверяем, если это пустая строка или текст, то возвращаем NaN
+    //     if (!cleanedText || isNaN(cleanedText.replace(',', '.'))) {
+    //         return NaN;
     //     }
+    //
+    //     // Заменяем запятую на точку для корректной обработки чисел
+    //     const valueWithDot = cleanedText.replace(',', '.');
+    //
+    //     // Проверяем, является ли результат числом
+    //     const parsedValue = parseFloat(valueWithDot);
+    //
+    //     // Если результат не является числом, возвращаем NaN
+    //     if (isNaN(parsedValue)) {
+    //         return NaN;
+    //     }
+    //
+    //     return {averageMarkValue: parsedValue, isValid: true};
     // }
+
+    function parseRuToEnFloat(averageMarkValue) {
+        averageMarkValue += ''
+        averageMarkValue.replace(',','.')
+        return parseFloat(averageMarkValue)
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -106,30 +130,29 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotifi
             transferredStudents: transferredStudents,
             formOfEducation: formOfEducation,
             shouldBeExpelled: shouldBeExpelled,
-            averageMark: averageMark,
+            averageMark: parseRuToEnFloat(averageMarkValue),
             semesterEnum: semester,
-            groupAdmin: chosenAdmin//groupPotentialAdmin.filter(admin => admin.selected),
+            groupAdmin: chosenAdmin
         };
         console.log("sending: ", newGroup);
 
         const submitValue = onSubmit(newGroup, chosenAdmin);
         console.log(submitValue.json);
-        if(!submitValue) {
-            console.log("непраивльное значение submit value")
+        if (!submitValue) {
+            console.log("непраивльное значение submit averageMarkValue")
             return;
         }
 
-        try{
+        try {
             const res = await submitValue;
             const responseData = await res.json();
 
-            if(res.status === 200 || res.status === 201) {
+            if (res.status === 200 || res.status === 201) {
                 const message = responseData.message || "Успех";
                 console.log(message);
                 showNotification(message, "success"); // Передаем message в уведомление
                 onClose();
-            }
-            else {
+            } else {
                 const errorMessage = responseData.message || "Ошибка выполнения запроса";
                 console.error("Проблемы с отправкой:", errorMessage);
                 showNotification(`Ошибка: ${errorMessage}`, "error");
@@ -140,17 +163,9 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotifi
         }
     }
 
-        // submitValue.then(res => {
-        //         if (res.status === 200 || res.status === 201) {
-        //             onClose();
-        //         } else {
-        //             console.error("problems with submit: ", res);
-        //         }
-        //     }
-        // );
 
 
-    const notEditOnlyAdmin =  (
+    const notEditOnlyAdmin = (
         <div className="group-form">
             <h2>{selectedGroup ? 'Редактировать группу' : 'Добавить группу'}</h2>
             <form onSubmit={handleSubmit}>
@@ -171,7 +186,7 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotifi
                         <input
                             type="number"
                             value={coordinates.x}
-                            onChange={(e) => setCoordinates({ ...coordinates, x: e.target.value })}
+                            onChange={(e) => setCoordinates({...coordinates, x: e.target.value})}
                             required
                         />
                     </label>
@@ -181,7 +196,7 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotifi
                         <input
                             type="number"
                             value={coordinates.y}
-                            onChange={(e) => setCoordinates({ ...coordinates, y: e.target.value })}
+                            onChange={(e) => setCoordinates({...coordinates, y: e.target.value})}
                             required
                         />
                     </label>
@@ -237,26 +252,33 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotifi
                     </select>
                 </label>
 
-                <label>
-                    Средняя оценка группы:
-                    <input
-                        type="number"
-                        value={averageMark}
-                        min={1}
-                        max={5}
-                        step={0.1}
-                        onChange={(e) => setAverageMark(Number(e.target.value))}
-                        required
-                    />
-                </label>
+                {/*<label>*/}
+                Средняя оценка группы:
+                <input
+                    name="my_field"
+                    value={averageMarkValue}
+                    onChange={handleChange}
+                    onBlur={handleBlur} // Преобразуем запятую в точку при потере фокуса
+                    placeholder="Введите число"
+                />
+                {/*<input*/}
+                {/*    type="float"*/}
+                {/*    averageMarkValue={averageMark}*/}
+                {/*    min={1}*/}
+                {/*    max={5}*/}
+
+                {/*    onChange={(e) => setAverageMark(e.target.averageMarkValue)}*/}
+                {/*    required*/}
+                {/*/>*/}
 
                 <label>
                     Текущий семестр
                     <select id="current-semester" value={semester}
                             onChange={(e) => {
-                                setSemester(e.target.value)}
+                                setSemester(e.target.value)
                             }
-                                >
+                            }
+                    >
                         {Object.keys(currentSemester).map((sem) => (
                             <option key={sem} value={sem}>{currentSemester[sem]}</option>
                         ))}
@@ -271,7 +293,7 @@ const GroupForm = ({ selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotifi
                             const selectedId = e.target.value;
 
                             let chosenAdmin = groupPotentialAdmin.find(person => person.id === Number(selectedId));
-                            if(!chosenAdmin) {
+                            if (!chosenAdmin) {
                                 chosenAdmin = groupPotentialAdmin[0];
                             }
                             setChosenAdmin(chosenAdmin);

@@ -6,21 +6,23 @@ import {
     GET_LIST_AVERAGES,
     GET_PERSONS,
     GET_TOTAL_EXPELLED_STUDENTS,
-    GROUP_UP_BY_FORM_OF_EDUCATION, UPDATE_GROUP_ADMIN
+    GROUP_UP_BY_FORM_OF_EDUCATION,
+    UPDATE_GROUP_ADMIN
 } from "../../../config";
 import Notification from "../../notification-component/notification";
+import DeleteFeature from "./delete-feature";
 
 const FeaturesPanel = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalDelete, setIsModalDelete] = useState(false);
+
     const [modalContent, setModalContent] = useState(null);
-    const [adminToDelGroup, setAdminToDelGroup] = useState(null);
+    const [adminToDelGroup, setAdminToDelGroup] = useState('затычка');
     const [people, setPeople] = useState([]);
     const [notification, setNotification] = useState(null);
     const [averageMarks, setAverageMarks] = useState([]); // Состояние для хранения уникальных значений averageMark
     const [totalExpelledStudents, setTotalExpelledStudents] = useState(0);
     const [adminToUpdateGroup, setAdminToUpdateGroup] = useState(null);
-
-
 
     // Функция для открытия модального окна с контентом
     const openModal = (content) => {
@@ -31,7 +33,8 @@ const FeaturesPanel = () => {
     const handleNotification = (message, type) => {
         setNotification({ message, type });
     };
-    // Функция для отображения таблицы
+
+    // Функция для отображения таблицы группировки по formOfEducation
     const renderGroupByFormTable = (data) => (
         <div>
             <h1>Результат группировки по formOfEducation</h1>
@@ -56,9 +59,7 @@ const FeaturesPanel = () => {
 
     // Обработчик для группировки по formOfEducation
     const handleGroupByFormOfEducation = () => {
-        authFetch(`${GROUP_UP_BY_FORM_OF_EDUCATION}`, {
-            method: "GET"
-        })
+        authFetch(`${GROUP_UP_BY_FORM_OF_EDUCATION}`, { method: "GET" })
             .then(response => response.json())
             .then(data => {
                 if (data.body) {
@@ -73,110 +74,35 @@ const FeaturesPanel = () => {
             });
     };
 
-    // Функция для фетчинга списка людей
+    // Функция для получения списка людей (для удаления)
     const fetchPeople = async () => {
         try {
             const response = await authFetch(GET_PERSONS);
             const data = await response.json();
-
-            if (data.body && Array.isArray(data.body.content)) {
-                setPeople(data.body.content);
-            } else {
-                console.error("Полученные данные не содержат ожидаемый массив content:", data);
-                setPeople([]); // Устанавливаем пустой массив в случае ошибки
-            }
+            setPeople(data.body.content);
+            setAdminToDelGroup(data.body.content[0]); // Задаем adminToDelGroup после загрузки
         } catch (error) {
             console.error("Ошибка при получении данных:", error);
             setPeople([]); // Устанавливаем пустой массив в случае ошибки
         }
     };
 
-    // Используем useEffect для загрузки людей при монтировании компонента
     useEffect(() => {
         fetchPeople();
+    }, []);
 
-    }, []); // Пустой массив зависимостей, так что вызовется только один раз
-
-    // Функция для рендеринга модального окна с текстом
-    const renderDelete = () => {
-        return (
-            <div>
-                <h1>Удаляем группу по админу</h1>
-                <select
-                    id="person-admin"
-                    onChange={(e) => {
-                        const selectedId = e.target.value;
-                        console.log("до этого был под удаление: ",adminToDelGroup)
-                        let chosenAdmin = people.find(person => person.id === Number(selectedId));
-                        console.log("выбираем для удаления: ", chosenAdmin)
-                        if (!chosenAdmin) {
-                            chosenAdmin = people[0];
-                        }
-                        setAdminToDelGroup(chosenAdmin);
-                        console.log("Выбрали админа: ", chosenAdmin);
-                    }}
-                >
-                    {people.map((person) => (
-                        <option key={person.id} value={person.id}>
-                            {person.name}
-                        </option>
-                    ))}
-                </select>
-                <button onClick={handleDeleteRequest}>Удалить</button>
-            </div>
-        );
-    };
-
-    const handleDeleteRequest = async () => {
-        console.log("к хэндлу пришло: ", adminToDelGroup)
-
-        if (!adminToDelGroup) {
-            console.error("Не выбран админ для удаления");
-            // alert("Пожалуйста, выберите админа для удаления!");
-            return; // Останавливаем выполнение, если админ не выбран
-        }
-
-        try {
-            // Здесь вызываем запрос на удаление
-            const response = await authFetch(`${DELETE_GROUP_BY_ADMIN}/${adminToDelGroup.name}`, {
-                method: "DELETE",
-            });
-
-            const data = await response.json();
-            console.log("Результат удаления:", data);
-            setIsModalOpen(false);
-        } catch (error) {
-            console.error("Ошибка при удалении:", error);
-        }
-    };
-
-    // Обработчик для удаления админа
     const handleDeleteAdmin = () => {
-        // await fetchPeople();
-        // console.log("при нажатии ВХОДА",adminToDelGroup);
-        // setAdminToDelGroup(people[0])
-        // console.log("засетили дефолтного",adminToDelGroup)
-        openModal(renderDelete());
+        setIsModalOpen(true);
+        setIsModalDelete(true)
     };
 
-
-    // const renderUniqueValue = (
-    //     <h1>hi</h1>
-    // )
-    //
-    // const handleUniqueValueOfAverageMark = () => {
-    //
-    //     openModal(renderUniqueValue)
-    // }
     const handleUniqueValueOfAverageMark = async () => {
         try {
-            const response = await authFetch(`${GET_LIST_AVERAGES}`,{
-                method: "GET"
-            }); // Замените на URL для запроса уникальных значений
+            const response = await authFetch(`${GET_LIST_AVERAGES}`, { method: "GET" });
             const data = await response.json();
 
             if (data.body) {
-                setAverageMarks(data.body); // Обновляем состояние значениями, полученными с бэкенда
+                setAverageMarks(data.body);
                 const renderUniqueValue = (
                     <div>
                         <h1>Уникальные значения Average Mark</h1>
@@ -189,16 +115,16 @@ const FeaturesPanel = () => {
                             <tbody>
                             {data.body.map((mark, index) => (
                                 <tr key={index}>
-                                    <td>{mark}</td> {/* Значение averageMark */}
+                                    <td>{mark}</td>
                                 </tr>
                             ))}
                             </tbody>
                         </table>
                     </div>
                 );
-                openModal(renderUniqueValue); // Открываем модальное окно с отрендеренными значениями
+                openModal(renderUniqueValue);
             } else {
-                openModal(<p>Данные не найдены</p>); // Если данные не пришли
+                openModal(<p>Данные не найдены</p>);
             }
         } catch (error) {
             console.error("Ошибка при загрузке данных:", error);
@@ -206,13 +132,13 @@ const FeaturesPanel = () => {
         }
     };
 
-
-    const handleGettingTotalExpelledStudents = async () =>  {
-        try{
-            const response = await authFetch(`${GET_TOTAL_EXPELLED_STUDENTS}`, {method: "GET"})
+    // Обработчик для подсчета отчисленных студентов
+    const handleGettingTotalExpelledStudents = async () => {
+        try {
+            const response = await authFetch(`${GET_TOTAL_EXPELLED_STUDENTS}`, { method: "GET" });
             const data = await response.json();
-            const expelledCount = data.body; // Получаем значение из ответа
-            if(data.body){
+            const expelledCount = data.body;
+            if (data.body) {
                 const renderExpelledBlock = (
                     <div>
                         <table>
@@ -228,18 +154,15 @@ const FeaturesPanel = () => {
                             </tbody>
                         </table>
                     </div>
-                )
+                );
                 openModal(renderExpelledBlock);
-
+            } else {
+                openModal(<h1>Ошибка: данные не получены</h1>);
             }
-            else{
-                openModal(<h1>юра, мы все проебали(</h1>)
-            }
-        }catch (error) {
+        } catch (error) {
             console.error(error);
         }
-    }
-
+    };
 
     const actions = [
         {
@@ -291,8 +214,17 @@ const FeaturesPanel = () => {
                 </tbody>
             </table>
 
+            {/*модалка исключительно чтобы окно удаление открывать*/}
+            <Modal
+                isOpen={isModalOpen && isModalDelete}
+                onClose={() => {setIsModalOpen(false); setIsModalDelete(false)}}
+            >
+                <DeleteFeature onClose={() => {setIsModalOpen(false); setIsModalDelete(false)}}/>
+            </Modal>
             {/* Модальное окно */}
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+            <Modal
+                isOpen={!isModalDelete && isModalOpen}
+                onClose={() => setIsModalOpen(false)}>
                 {modalContent}
             </Modal>
 

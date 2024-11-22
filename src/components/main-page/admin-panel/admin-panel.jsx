@@ -10,24 +10,34 @@ const AdminPanel = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
     const [notification, setNotification] = useState(null);
-    const [pageSize, setPageSize] = useState(5); // Количество элементов на странице
+    const [pageSize, setPageSize] = useState(5);
+    const [isAccessDenied, setIsAccessDenied] = useState(false);
 
     useEffect(() => {
         fetchAdmins();
-    }, [currentPage, pageSize]); // Обновляем данные при смене страницы или размера страницы
+    }, [currentPage, pageSize]);
 
     const fetchAdmins = () => {
+        let message;
         authFetch(`${GET_ALL_ADMINS}?page=${currentPage - 1}&size=${pageSize}`, {
             method: 'GET',
         })
             .then((res) => res.json())
             .then((data) => {
-                setPotentialAdmins(data.body.content); // Данные для текущей страницы
-                setTotalPages(data.body.totalPages); // Общее количество страниц
-                setFilteredUsers(data.body.content); // Устанавливаем в filteredUsers для поиска
+                message = data.message;
+                setPotentialAdmins(data.body.content);
+                setTotalPages(data.body.totalPages);
+                setFilteredUsers(data.body.content);
+                setIsAccessDenied(false);
             })
-            .catch((err) => console.log(err));
+            .catch((err) =>{ handleNotification(message || "Произошла ошибка", "error")
+                setIsAccessDenied(true)
+            });
     };
+
+    const accessDeniedRender = (
+        <h1>У вас нет доступа к этой вкладке</h1>
+    )
 
     const handleNotification = (message, type) => {
         setNotification({ message, type });
@@ -125,11 +135,11 @@ const AdminPanel = () => {
         currentPage * pageSize
     );
 
-    return (
+    const accessNotDenied =  (
+
         <div className="admin-panel">
             <h2>Запросы на роль администратора</h2>
 
-            {/* Переключатель для количества элементов на странице */}
             <label>
                 Элементов на странице:
                 <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))}>
@@ -186,6 +196,11 @@ const AdminPanel = () => {
             )}
         </div>
     );
+    if(isAccessDenied){
+        return accessDeniedRender
+    }else{
+        return accessNotDenied
+    }
 };
 
 export default AdminPanel;

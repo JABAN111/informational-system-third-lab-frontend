@@ -27,11 +27,8 @@ function AuthComponent() {
 
     const submitHandler = (e) => {
         e.preventDefault();
-        console.log("сабмитим");
         if (validationOfData()) {
-            console.log("прошли проверку, вся дата валидна")
             if (isLogin) {
-                console.log("Данные отправляются...");
                 sendAuthRequest();
             } else {
                 registrationRequest()
@@ -130,11 +127,12 @@ function AuthComponent() {
                 if (data.body.token) {
                     sessionStorage.setItem('sessionId', data.body.token);
                     console.log("Токен сохранён в sessionStorage:", data.body.token);
+                    localStorage.setItem('username', email);
                     navigate("/main-page");
                 }
             })
             .catch(
-                err => handleNotification("пизда пизда пизда","error")
+                err => handleNotification("Ошибка регистрации","error")
             );
     };
 
