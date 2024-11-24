@@ -126,13 +126,12 @@ function AuthComponent() {
             .then(data => {
                 if (data.body.token) {
                     sessionStorage.setItem('sessionId', data.body.token);
-                    console.log("Токен сохранён в sessionStorage:", data.body.token);
                     localStorage.setItem('username', email);
                     navigate("/main-page");
                 }
             })
             .catch(
-                err => handleNotification("Ошибка регистрации","error")
+                err => handleNotification("Неверный логин или пароль","error")
             );
     };
 

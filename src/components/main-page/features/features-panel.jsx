@@ -157,7 +157,7 @@ const FeaturesPanel = () => {
                 );
                 openModal(renderExpelledBlock);
             } else {
-                openModal(<h1>Ошибка: данные не получены</h1>);
+                openModal(<h1>Отсутствуют созданные группы</h1>);
             }
         } catch (error) {
             console.error(error);

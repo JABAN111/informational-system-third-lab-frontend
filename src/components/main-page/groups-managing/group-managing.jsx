@@ -6,7 +6,7 @@ import {
     GET_ALL_GROUPS,
     GET_FILTERED_GROUPS, GET_PERSONS,
     UPDATE_GROUP,
-    UPDATE_GROUP_ADMIN,
+    UPDATE_GROUP_ADMIN, UPDATE_GROUPS,
 } from '../../../config';
 import GroupForm from "../group-form/group-form";
 import Modal from "../modal";
@@ -30,6 +30,8 @@ const GroupManaging = () => {
     const [people, setPeople] = useState([])
     const [minDate, setMinDate] = useState("");
     const [maxDate, setMaxDate] = useState("");
+
+    const longPollingRef = useRef(false);
 
     useEffect(() => {
         const date = new Date();
@@ -75,6 +77,55 @@ const GroupManaging = () => {
         fetchPeople()
     }, [])
 
+    useEffect(() => {
+        longPollingRef.current = true;
+        startLongPolling();
+
+        return () => {
+            longPollingRef.current = false; // Останавливаем long polling при размонтировании компонента
+        };
+    }, []);
+
+    const startLongPolling = async () => {
+        while (longPollingRef.current) {
+            try {
+                console.log("Long polling: отправка запроса на обновление групп...");
+                const response = await authFetch(`${UPDATE_GROUPS}?page=${currentPage - 1}&size=${pageSize}&sortBy=${sortColumn}&sortDirection=${sortDirection}`);
+                const data = await response.json();
+                const content = await data.content;
+
+                const username = localStorage.getItem('username') || '';
+                const role = localStorage.getItem('role') || '';
+                let isAdmin = false;
+                if(role !== ''){
+                    isAdmin = 'ROLE_ADMIN' === localStorage.getItem('role');
+                }
+
+                const updatedGroups = content.map((group) => {
+                    const creatorUsernameOfCurrentGroup = group.creator?.username || '';
+                    let canEdit;
+                    if(!isAdmin) {
+                        canEdit = creatorUsernameOfCurrentGroup === username;
+                    } else {
+                        canEdit = true;
+                    }
+
+                    return {
+                        ...group,
+                        canEdit,
+                    };
+                });
+                setStudyGroups(updatedGroups);
+
+
+            } catch (error) {
+                console.error("Ошибка в long polling:", error);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 10_000));
+        }
+    };
+
     // const fetchGroups = async () => {
     //     setIsLoading(true);
     //     let message = ': ';
@@ -88,12 +139,11 @@ const GroupManaging = () => {
             const response = await authFetch(`${GET_ALL_GROUPS}?page=${currentPage - 1}&size=${pageSize}&sortBy=${sortColumn}&sortDirection=${sortDirection}`);
             const data = await response.json();
 
-            console.log("Полученные данные:", data);
 
             message += data.message; // Добавляем сообщение
 
             // Обновляем общее количество страниц
-            setTotalPages(data.body.totalPages);
+            setTotalPages(data.body.totalPages || 1);
 
             // Логика для заполнения массива updatedGroups
             const username = localStorage.getItem('username') || '';
@@ -105,9 +155,10 @@ const GroupManaging = () => {
             }
 
             const updatedGroups = data.body.content.map((group) => {
-                // Используйте нужный creator (выберите groupAdmin или верхний уровень creator)
-                const creatorUsernameOfCurrentGroup = group.creator?.username || ''; // Если нужен creator из group
+                const creatorUsernameOfCurrentGroup = group.creator?.username || '';
+
                 let canEdit;
+
                 if(!isAdmin) {
                     canEdit = creatorUsernameOfCurrentGroup === username;
                 } else {
@@ -119,24 +170,21 @@ const GroupManaging = () => {
                     canEdit,
                 };
             });
-            // Обновляем состояние studyGroups
+
             setStudyGroups(updatedGroups);
         } catch (error) {
-            console.error("Ошибка при получении данных:", error);
+
             handleNotification("Ошибка при получении данных " + (message.length > 2 ? message : ''), "error");
         } finally {
-            setIsLoading(false); // Скрываем индикатор загрузки
+            setIsLoading(false);
         }
     };
 
-    // const processArray = async (array) => {
-    //     for()
-    // }
 
     const applyFilter = async () => {
         setIsLoading(true);
         let messageFromServer = 'data';
-
+        longPollingRef.current = false;
 
         const queryParams = new URLSearchParams({
             ...filterParams,
@@ -176,11 +224,8 @@ const GroupManaging = () => {
                 };
             });
             setStudyGroups(updatedGroups);
-            setTotalPages(data.body.totalPages)
+            setTotalPages(data.body.totalPages || 1)
             handleNotification("фильтрация завершена", "success")
-
-
-
 
             setIsLoading(false);
         }).catch(() => {
@@ -282,6 +327,29 @@ const GroupManaging = () => {
 
     const handleModalOpen = () => isEdit ? (isEditOnlyAdmin ? handleEditAdminOnly : handleEdit) : handleSave;
 
+    function resetFilters() {
+        setFilterParams({
+            name: '',
+            studentsCount: '',
+            formOfEducation: '',
+            currentSemester: '',
+            createdAfter: '',
+            shouldBeExpelled: '',
+            averageMark: '',
+            ExpelledStudents: '',
+            transferredStudents: '',
+            admin: '',
+        });
+        longPollingRef.current = true;
+
+        setCurrentPage(1);
+        setSortColumn('id');
+        setSortDirection('asc');
+
+        fetchGroups();
+        startLongPolling()
+    }
+
     return (
         <div className="main-page">
             <h1>Список учебных групп</h1>
@@ -337,6 +405,7 @@ const GroupManaging = () => {
                     type="number"
                     name="averageMark"
                     placeholder={"Средняя оценка"}
+                    value={filterParams.averageMark}
                     onChange={handleFilterChange}
                 />
                 <input
@@ -344,12 +413,14 @@ const GroupManaging = () => {
                     type="number"
                     name="ExpelledStudents"
                     placeholder={"Отчисленные студенты"}
+                    value={filterParams.ExpelledStudents}
                     onChange={handleFilterChange}
                 />
                 <input
                     id="filterTransferredStudents"
                     type="number"
                     name="transferredStudents"
+                    value={filterParams.transferredStudents}
                     placeholder={"Переведенные студенты"}
                     onChange={handleFilterChange}
                 />
@@ -370,6 +441,7 @@ const GroupManaging = () => {
 
 
                 <button onClick={applyFilter}>Применить фильтр</button>
+                <button onClick={resetFilters}>Сбросить фильтры</button>
             </div>
 
             <button onClick={() => {

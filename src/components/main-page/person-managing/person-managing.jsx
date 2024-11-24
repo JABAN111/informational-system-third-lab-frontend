@@ -30,7 +30,7 @@ const PersonManaging = () => {
 
             if (data && data.body) {
                 setPeople(data.body.content);
-                setTotalPages(data.body.totalPages);
+                setTotalPages(data.body.totalPages || 1);
             }
         } catch (error) {
             console.error("Ошибка при получении данных:", error);
