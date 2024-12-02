@@ -62,7 +62,6 @@ const PersonManaging = () => {
                         canEdit,
                     };
                 });
-                console.log("люды: ", updatedPeople)
                 setPeople(updatedPeople); // Обновляем состояние с учетом canEdit
             }
         } catch (error) {

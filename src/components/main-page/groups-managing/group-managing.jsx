@@ -141,7 +141,6 @@ const GroupManaging = () => {
             let isAdmin = false;
             if (role !== '') {
                 isAdmin = 'ROLE_ADMIN' === localStorage.getItem('role');
-                console.log(isAdmin);
             }
 
             const updatedGroups = data.body.content.map((group) => {
