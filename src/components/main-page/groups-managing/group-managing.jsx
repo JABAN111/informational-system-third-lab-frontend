@@ -24,8 +24,12 @@ const GroupManaging = () => {
     const [notification, setNotification] = useState(null);
     const [isEdit, setIsEdit] = useState(false);
     const [isEditOnlyAdmin, setIsEditOnlyAdmin] = useState(false);
-    const [sortColumn, setSortColumn] = useState('id');
-    const [sortDirection, setSortDirection] = useState('asc');
+    // const [sortColumn, setSortColumn] = useState('id');
+    // const [sortDirection, setSortDirection] = useState('asc');
+    // Переменные для сортировки
+    const sortColumn = useRef('id');
+    const sortDirection = useRef('asc');
+
     const [filterParams, setFilterParams] = useState({});
     const [people, setPeople] = useState([])
     const [minDate, setMinDate] = useState("");
@@ -67,11 +71,6 @@ const GroupManaging = () => {
         fetchGroups();
     }, [currentPage, pageSize, sortColumn, sortDirection]);
 
-    // useEffect(() => {
-
-        // console.log(updatedGroups);
-        // setStudyGroups(updatedGroups);
-    // }, []);
 
     useEffect(() => {
         fetchPeople()
@@ -89,22 +88,21 @@ const GroupManaging = () => {
     const startLongPolling = async () => {
         while (longPollingRef.current) {
             try {
-                console.log("Long polling: отправка запроса на обновление групп...");
-                const response = await authFetch(`${UPDATE_GROUPS}?page=${currentPage - 1}&size=${pageSize}&sortBy=${sortColumn}&sortDirection=${sortDirection}`);
+                const response = await authFetch(`${UPDATE_GROUPS}?page=${currentPage - 1}&size=${pageSize}&sortBy=${sortColumn.current}&sortDirection=${sortDirection.current}`);
                 const data = await response.json();
                 const content = await data.content;
 
                 const username = localStorage.getItem('username') || '';
                 const role = localStorage.getItem('role') || '';
                 let isAdmin = false;
-                if(role !== ''){
+                if (role !== '') {
                     isAdmin = 'ROLE_ADMIN' === localStorage.getItem('role');
                 }
 
                 const updatedGroups = content.map((group) => {
                     const creatorUsernameOfCurrentGroup = group.creator?.username || '';
                     let canEdit;
-                    if(!isAdmin) {
+                    if (!isAdmin) {
                         canEdit = creatorUsernameOfCurrentGroup === username;
                     } else {
                         canEdit = true;
@@ -121,35 +119,27 @@ const GroupManaging = () => {
             } catch (error) {
                 console.error("Ошибка в long polling:", error);
             }
-
-            await new Promise(resolve => setTimeout(resolve, 10_000));
+            await new Promise(resolve => setTimeout(resolve, 30_000));
         }
     };
 
-    // const fetchGroups = async () => {
-    //     setIsLoading(true);
-    //     let message = ': ';
-    // }
-    //
     const fetchGroups = async () => {
         setIsLoading(true); // Показываем индикатор загрузки
         let message = ": ";
         try {
             // Запрос данных
-            const response = await authFetch(`${GET_ALL_GROUPS}?page=${currentPage - 1}&size=${pageSize}&sortBy=${sortColumn}&sortDirection=${sortDirection}`);
+            const response = await authFetch(`${GET_ALL_GROUPS}?page=${currentPage - 1}&size=${pageSize}&sortBy=${sortColumn.current}&sortDirection=${sortDirection.current}`);
             const data = await response.json();
 
+            message += data.message;
 
-            message += data.message; // Добавляем сообщение
-
-            // Обновляем общее количество страниц
             setTotalPages(data.body.totalPages || 1);
 
             // Логика для заполнения массива updatedGroups
             const username = localStorage.getItem('username') || '';
             const role = localStorage.getItem('role') || '';
             let isAdmin = false;
-            if(role !== ''){
+            if (role !== '') {
                 isAdmin = 'ROLE_ADMIN' === localStorage.getItem('role');
                 console.log(isAdmin);
             }
@@ -159,7 +149,7 @@ const GroupManaging = () => {
 
                 let canEdit;
 
-                if(!isAdmin) {
+                if (!isAdmin) {
                     canEdit = creatorUsernameOfCurrentGroup === username;
                 } else {
                     canEdit = true;
@@ -196,14 +186,13 @@ const GroupManaging = () => {
 
         await authFetch(`${GET_FILTERED_GROUPS}?${queryParams.toString()}`).then((data) => data.json()).then((data) => {
             messageFromServer = data.message;
-            // setStudyGroups(data.body.content)
-
-
 
             const username = localStorage.getItem('username') || '';
             const role = localStorage.getItem('role') || '';
+
             let isAdmin = false;
-            if(role !== ''){
+
+            if (role !== '') {
                 isAdmin = 'ROLE_ADMIN' === localStorage.getItem('role');
                 console.log(isAdmin);
             }
@@ -212,9 +201,9 @@ const GroupManaging = () => {
                 // Используйте нужный creator (выберите groupAdmin или верхний уровень creator)
                 const creatorUsernameOfCurrentGroup = group.creator?.username || ''; // Если нужен creator из group
                 let canEdit;
-                if(!isAdmin) {
+                if (!isAdmin) {
                     canEdit = creatorUsernameOfCurrentGroup === username;
-                }else{
+                } else {
                     canEdit = true;
                 }
 
@@ -240,17 +229,15 @@ const GroupManaging = () => {
         try {
             const response = await authFetch(GET_PERSONS);
             const data = await response.json();
-
-            if (data.body && Array.isArray(data.body.content)) { // Проверка, что data.body.content — массив
+            message = data.message;
+            if (data.body && Array.isArray(data.body.content)) {
                 setPeople(data.body.content);
-
             } else {
-                console.error("Полученные данные не содержат ожидаемый массив content:", data);
-                handleNotification("Ошибка при получении данных", "error")
+                handleNotification(`Ошибка при получении данных ${message || ""}`, "error")
                 setPeople([]);
             }
         } catch (error) {
-            handleNotification("Ошибка при получении данных", "error");
+            handleNotification(`Ошибка при получении данных: ${message || ""}`, "error");
             setPeople([]);
         }
     };
@@ -300,6 +287,7 @@ const GroupManaging = () => {
     };
 
     const handleFilterChange = (e) => {
+        averageMarProcessing(e)
         setFilterParams({...filterParams, [e.target.name]: e.target.value});
     };
 
@@ -318,12 +306,17 @@ const GroupManaging = () => {
     const prevPage = () => {
         if (currentPage > 1) setCurrentPage(prevPage => prevPage - 1);
     };
-
     const handleSort = (column) => {
-        setSortDirection(sortColumn === column && sortDirection === 'asc' ? 'desc' : 'asc');
-        setSortColumn(column);
+        sortDirection.current = (sortColumn.current === column && sortDirection.current === 'asc') ? 'desc' : 'asc';
+        sortColumn.current = column;
         fetchGroups();
     };
+
+    // const handleSort = (column) => {
+    //     setSortDirection(sortColumn === column && sortDirection === 'asc' ? 'desc' : 'asc');
+    //     setSortColumn(column);
+    //     fetchGroups();
+    // };
 
     const handleModalOpen = () => isEdit ? (isEditOnlyAdmin ? handleEditAdminOnly : handleEdit) : handleSave;
 
@@ -343,12 +336,35 @@ const GroupManaging = () => {
         longPollingRef.current = true;
 
         setCurrentPage(1);
-        setSortColumn('id');
-        setSortDirection('asc');
+        // setSortColumn('id');
+        // setSortDirection('asc');
+        sortColumn.current = 'id';
+        sortDirection.current = 'asc';
 
         fetchGroups();
         startLongPolling()
     }
+
+    const averageMarProcessing = (e) => {
+        let newValue = e.target.value;
+
+        if(newValue)
+            newValue = newValue.replace(',', '.');
+
+        const pattern = /^-?\d*\.?\d{0,2}$/;
+        if (pattern.test(newValue) || newValue === '') {
+            setFilterParams({ ...filterParams, averageMark: newValue });
+        } else {
+            setFilterParams({ ...filterParams, averageMark: '' });
+        }
+    };
+
+
+    const handleBlur = () => {};
+
+
+
+
 
     return (
         <div className="main-page">
@@ -406,6 +422,7 @@ const GroupManaging = () => {
                     name="averageMark"
                     placeholder={"Средняя оценка"}
                     value={filterParams.averageMark}
+                    onBlur={handleBlur}
                     onChange={handleFilterChange}
                 />
                 <input
@@ -484,24 +501,34 @@ const GroupManaging = () => {
                                     <td>{group.groupAdmin?.name}</td>
                                     <td>
                                         {group.canEdit ? (
-                                            <>
-                                        <button
-                                            onClick={() => {
-                                            setIsEdit(true);
-                                            setIsFormVisible(true);
-                                            setSelectedGroup(group);
-                                        }}>Редактировать
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                            setIsEdit(true);
-                                            setIsEditOnlyAdmin(true);
-                                            setIsFormVisible(true);
-                                            setSelectedGroup(group);
-                                        }}>Сменить админа
-                                        </button>
-                                        <button onClick={() => handleDelete(group.id)}>Удалить</button>
-                                            </> ):( <>У вас не достаточно прав на взаимодействие с этой группой</>)}
+                                                <>
+                                                    <button
+                                                        onClick={() => {
+                                                            setIsEdit(true);
+                                                            setIsFormVisible(true);
+                                                            setSelectedGroup(group);
+                                                        }}>Редактировать
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setIsEdit(true);
+                                                            setIsEditOnlyAdmin(true);
+                                                            setIsFormVisible(true);
+                                                            setSelectedGroup(group);
+                                                        }}>Сменить админа
+                                                    </button>
+                                                    <button onClick={() => handleDelete(group.id)}>Удалить</button>
+                                                </>) :
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center'
+                                            }}>
+                                                <img src="/never.gif" alt="вы не можете редактировать этот объект"
+                                                     width={50} height={50}/>
+                                            </div>
+                                            //     d
+                                        }
                                     </td>
                                 </tr>
                             ))}

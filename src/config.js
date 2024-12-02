@@ -6,6 +6,7 @@ const API_AUTH = `api/${API_VERSION}/auth`
 export const LOGIN = `${API_AUTH}/login`
 export const CREATE_USER = `${API_AUTH}/create-user`
 
+
 const API_PERSON = `api/${API_VERSION}/manage/persons`
 export const GET_PERSONS = `${SERVER_URL}/${API_PERSON}/persons-names`
 export const CREATE_PERSON = `${SERVER_URL}/${API_PERSON}/create-person`
@@ -26,7 +27,6 @@ export const GET_TOTAL_EXPELLED_STUDENTS = `${SERVER_URL}/${API_STUDY_GROUP}/tot
 export const UPDATE_GROUP_ADMIN = `${SERVER_URL}/${API_STUDY_GROUP}/update-admin`
 export const GET_FILTERED_GROUPS = `${SERVER_URL}/${API_STUDY_GROUP}/filter`
 
-export const REQUEST_ADMIN = "request_admin"
 
 const ADMIN_API = `api/${API_VERSION}/admin/console`
 export const GET_ALL_ADMINS = `${SERVER_URL}/${ADMIN_API}/get-all`

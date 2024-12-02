@@ -1,11 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
 import authFetch from "../../../utils/netUitls";
-import { GET_ALL_GROUPS } from "../../../config";
+import {GET_ALL_GROUPS, UPDATE_GROUPS} from "../../../config";
 
 const OptionalTask = () => {
     const [groups, setGroups] = useState([]);
     const peopleAndColors = useRef({});
     const canvasRef = useRef(null);
+    const longPollingRef = useRef(false);
+    const [isEmpty, setIsEmpty] = useState(true);
 
     const hatchWidth = 20 / 2;
     const hatchGap = 56;
@@ -18,6 +20,47 @@ const OptionalTask = () => {
             setGroups(data.body.content); // Сохраняем данные в состоянии
         } catch (error) {
             console.error("Ошибка при получении данных:", error);
+        }
+    };
+
+
+    const startLongPolling = async () => {
+        while (longPollingRef.current) {
+            try {
+                const response = await authFetch(`${UPDATE_GROUPS}?page=${0}&size=${1000}`);
+                const data = await response.json();
+                const content = await data.content;
+
+                const username = localStorage.getItem('username') || '';
+                const role = localStorage.getItem('role') || '';
+                let isAdmin = false;
+                if(role !== ''){
+                    isAdmin = 'ROLE_ADMIN' === localStorage.getItem('role');
+                }
+
+                const updatedGroups = content.map((group) => {
+                    const creatorUsernameOfCurrentGroup = group.creator?.username || '';
+                    let canEdit;
+                    if(!isAdmin) {
+                        canEdit = creatorUsernameOfCurrentGroup === username;
+                    } else {
+                        canEdit = true;
+                    }
+
+                    return {
+                        ...group,
+                        canEdit,
+                    };
+                });
+                await setGroups(updatedGroups);
+                const lenGroups = await updatedGroups.length;
+                await console.log(groups)
+                await setIsEmpty(lenGroups !== 0)
+            } catch (error) {
+                console.error("Ошибка в long polling:", error);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 10_000));
         }
     };
 
@@ -130,6 +173,8 @@ const OptionalTask = () => {
 
     useEffect(() => {
         fetchGroups();
+        longPollingRef.current = true;
+        startLongPolling();
     }, []);
 
     useEffect(() => {
@@ -138,7 +183,7 @@ const OptionalTask = () => {
         }
     }, [groups]);
 
-    return (
+    const ifNotEmpty = (
         <>
             <label htmlFor={"selector"}>Выберите цену деления</label>
             <select id={"selector"} onChange={(e) => setRadius(Number(e.target.value))}>
@@ -151,6 +196,10 @@ const OptionalTask = () => {
             <canvas ref={canvasRef} width="500" height="500" style={{ border: '1px solid black' }}></canvas>
         </>
     );
+    const ifIsEmpty = (
+        <h1>Нет записей в таблицу с группами</h1>
+    )
+    return isEmpty ? ifNotEmpty : ifIsEmpty;
 };
 
 export default OptionalTask;

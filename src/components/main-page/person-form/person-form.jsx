@@ -33,7 +33,6 @@ const PersonForm = ({selectedPerson, onSubmit, onClose, showNotification}) => {
 
 
     useEffect(() => {
-        console.log(selectedPerson)
         if (selectedPerson) {
             setPersonName(selectedPerson.name || '');
             setEyeColor(selectedPerson.eyeColor || 'GREEN');
@@ -70,11 +69,11 @@ const PersonForm = ({selectedPerson, onSubmit, onClose, showNotification}) => {
 
         try {
             const res = await submitValue;
-            const responseData = await res.json(); // Получаем JSON-данные из ответа
+            const responseData = await res.json();
             if (res.status === 200 || res.status === 201) {
                 const message = responseData.message || "Успех";
                 console.log(message);
-                showNotification(message, "success"); // Передаем message в уведомление
+                showNotification(message, "success");
                 onClose();
             } else {
                 const errorMessage = responseData.message || "Ошибка выполнения запроса";

@@ -58,13 +58,6 @@ function AuthComponent() {
         }
     };
 
-    const sendRequestForAdminPrivilege = () => {
-        console.log("not implemented");
-        // fetch(
-
-        return false;
-    }
-
     const registrationRequest = () => {
 
         let roleToServ;
@@ -82,7 +75,10 @@ function AuthComponent() {
             password: password,
             role: roleToServ,
         }
-        console.log("отправится: ", body)
+
+        localStorage.setItem('username', email);
+        localStorage.setItem('password', password);
+        let message = ''
         fetch(
             `${SERVER_URL}/${CREATE_USER}`,
             {
@@ -95,16 +91,17 @@ function AuthComponent() {
         ).then(
             res => res.json()
         ).then(
+
             data => {
-                if (data.body.token) { // Проверяем, что токен получен
-                    sessionStorage.setItem('sessionId', data.body.token); // Сохраняем токен в sessionStorage
-                    console.log("Токен сохранён в sessionStorage:", data.body.token);
-                    navigate("/main-page"); // Переходим на основную страницу после успешного сохранения
+                message = data.message
+                if (data.body.token) {
+                    sessionStorage.setItem('sessionId', data.body.token);
+                    navigate("/main-page");
                 } else {
                     handleNotification(data.message,"error");
                 }
             })
-            .catch(err => handleNotification(`ошибка при запросе: ${err.message}`, "error"));
+            .catch(err => handleNotification(`ошибка при запросе: ${message}`, "error"));
     }
 
     const sendAuthRequest = () => {
@@ -113,6 +110,9 @@ function AuthComponent() {
             password: password,
         };
 
+        localStorage.setItem('username', email);
+        localStorage.setItem('password', password);
+        let message
         fetch(`${SERVER_URL}/${LOGIN}`, {
 
             method: "POST",
@@ -131,7 +131,7 @@ function AuthComponent() {
                 }
             })
             .catch(
-                err => handleNotification("Неверный логин или пароль","error")
+                err => handleNotification( "Не удалось войти","error")
             );
     };
 

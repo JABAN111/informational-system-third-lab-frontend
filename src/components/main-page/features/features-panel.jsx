@@ -23,6 +23,13 @@ const FeaturesPanel = () => {
     const [averageMarks, setAverageMarks] = useState([]); // Состояние для хранения уникальных значений averageMark
     const [totalExpelledStudents, setTotalExpelledStudents] = useState(0);
     const [adminToUpdateGroup, setAdminToUpdateGroup] = useState(null);
+    const [isUserAdmin, setIsUserAdmin] = useState(false);
+
+
+    useEffect(() => {
+        const role = localStorage.getItem('role')
+        setIsUserAdmin(role && role !== 'ROLE_ADMIN');
+    }, []);
 
     // Функция для открытия модального окна с контентом
     const openModal = (content) => {
@@ -48,15 +55,14 @@ const FeaturesPanel = () => {
                 <tbody>
                 {data.map((item, index) => (
                     <tr key={index}>
-                        <td>{item.count_by_form_of_education.value.split(',')[0].replace('(', '')}</td>
-                        <td>{item.count_by_form_of_education.value.split(',')[1].replace(')', '')}</td>
+                        <td>{Object.keys(item)[0]}</td>
+                        <td>{item[Object.keys(item)[0]]}</td>
                     </tr>
                 ))}
                 </tbody>
             </table>
         </div>
     );
-
     // Обработчик для группировки по formOfEducation
     const handleGroupByFormOfEducation = () => {
         authFetch(`${GROUP_UP_BY_FORM_OF_EDUCATION}`, { method: "GET" })
@@ -168,26 +174,40 @@ const FeaturesPanel = () => {
         {
             name: "Удалить группу по админу",
             description: "Удаляет один объект, у которого поле эквивалентно заданному значению.",
-            buttonText: "Удалить",
-            onClick: handleDeleteAdmin
+            buttonText: !isUserAdmin ? "Удалить" : "У вас нет прав",
+            styles: {
+                backgroundColor: isUserAdmin ? "#ccc" : "#007bff",
+                color: isUserAdmin ? "#999" : "#fff",
+                cursor: isUserAdmin ? "not-allowed" : "pointer",
+                opacity: isUserAdmin ? 0.6 : 1,
+                border: "1px solid #ddd",
+                padding: "10px 20px",
+                borderRadius: "4px",
+                transition: "all 0.2s ease"
+            },
+            onClick: handleDeleteAdmin,
+            disable: isUserAdmin
         },
         {
             name: "Сгруппировать по formOfEducation",
             description: "Группирует объекты по значению поля formOfEducation и возвращает количество объектов в каждой группе.",
             buttonText: "Сгруппировать",
-            onClick: handleGroupByFormOfEducation
+            onClick: handleGroupByFormOfEducation,
+            disable: false
         },
         {
             name: "Получить уникальные значения averageMark",
             description: "Возвращает массив уникальных значений поля averageMark по всем объектам.",
             buttonText: "Получить значения",
-            onClick: handleUniqueValueOfAverageMark
+            onClick: handleUniqueValueOfAverageMark,
+            disable: false
         },
         {
             name: "Посчитать число отчисленных студентов",
             description: "Подсчитывает общее число отчисленных студентов во всех группах.",
             buttonText: "Посчитать",
-            onClick: handleGettingTotalExpelledStudents
+            onClick: handleGettingTotalExpelledStudents,
+            disable: false
         },
     ];
 
@@ -207,7 +227,7 @@ const FeaturesPanel = () => {
                         <td>{action.name}</td>
                         <td>{action.description}</td>
                         <td>
-                            <button onClick={action.onClick}>{action.buttonText}</button>
+                            <button style={action.styles} disabled={action.disable} onClick={action.onClick}>{action.buttonText}</button>
                         </td>
                     </tr>
                 ))}

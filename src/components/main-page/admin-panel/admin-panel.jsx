@@ -18,6 +18,11 @@ const AdminPanel = () => {
     }, [currentPage, pageSize]);
 
     const fetchAdmins = () => {
+        if(localStorage.getItem('role') && localStorage.getItem('role') !== 'ROLE_ADMIN') {
+            console.log(localStorage.getItem('role'));
+            setIsAccessDenied(true);
+        }
+
         let message;
         authFetch(`${GET_ALL_ADMINS}?page=${currentPage - 1}&size=${pageSize}`, {
             method: 'GET',
@@ -26,7 +31,7 @@ const AdminPanel = () => {
             .then((data) => {
                 message = data.message;
                 setPotentialAdmins(data.body.content);
-                setTotalPages(data.body.totalPages);
+                setTotalPages(data.body.totalPages || 1);
                 setFilteredUsers(data.body.content);
                 setIsAccessDenied(false);
             })

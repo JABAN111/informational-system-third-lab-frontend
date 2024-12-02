@@ -15,8 +15,9 @@ const isAuthenticated = async () => {
             method: 'GET',
 
         });
+        const data = await response.json();
+        await localStorage.setItem('role', data.body)
 
-        await localStorage.setItem('role', await response.text())
 
         return response.ok;
     } catch (error) {

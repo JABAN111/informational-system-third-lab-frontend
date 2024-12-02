@@ -1,3 +1,4 @@
+import {LOGIN, SERVER_URL} from "../config";
 
 /**
  * Небольшая костыльная функция, которая будет вкладывать авторизационный токен(если таковой есть) в header
@@ -22,7 +23,35 @@ const authFetch = (url, options = {}) => {
             'Authorization': token ? `Bearer ${token}` : '',
         }
     };
-
     return fetch(url, authOptions);
 };
+export const refreshToken = () => {
+    const username = localStorage.getItem('username');
+    const password = localStorage.getItem('password');
+
+    let body = {
+        username: username,
+        password: password,
+    };
+
+    sessionStorage.clear();
+    fetch(`${SERVER_URL}/${LOGIN}`, {
+
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body)
+
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.body.token) {
+                sessionStorage.setItem('sessionId', data.body.token);
+            }
+        })
+        .catch(
+        );
+}
+
 export default authFetch;

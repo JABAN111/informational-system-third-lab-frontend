@@ -2,8 +2,9 @@ function AuthorizationPage() {
 
     return (
         <>
-        <AuthorizationPage/>
+            <AuthorizationPage/>
         </>
     )
 }
+
 export default AuthorizationPage;

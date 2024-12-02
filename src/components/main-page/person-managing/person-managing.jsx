@@ -13,29 +13,63 @@ const PersonManaging = () => {
     const [selectedPerson, setSelectedPerson] = useState({});
     const [isFormVisible, setIsFormVisible] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);  // Количество элементов на странице
+    const [pageSize, setPageSize] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
     const [isEdit, setIsEdit] = useState(false);
     const [notification, setNotification] = useState(null);
 
     useEffect(() => {
         fetchPeople();
-    }, [currentPage, pageSize]); // Обновляем данные при смене страницы или размера страницы
+    }, [currentPage, pageSize]);
 
     const fetchPeople = async () => {
-        setIsLoading(true);
+        setIsLoading(true); // Показываем индикатор загрузки
+        let message = ": ";
         try {
+            // Запрос данных
             const response = await authFetch(`${GET_PERSONS}?page=${currentPage - 1}&size=${pageSize}`);
             const data = await response.json();
 
+            message += data.message; // Добавляем сообщение
+
             if (data && data.body) {
-                setPeople(data.body.content);
+                // Обновляем общее количество страниц
                 setTotalPages(data.body.totalPages || 1);
+
+                const username = localStorage.getItem('username') || '';
+                const role = localStorage.getItem('role') || '';
+                let isAdmin = false;
+
+                if (role !== '') {
+                    isAdmin = 'ROLE_ADMIN' === localStorage.getItem('role');
+                    console.log(isAdmin);
+                }
+
+                const updatedPeople = data.body.content.map((person) => {
+                    const creatorUsernameOfCurrentPerson = person.creator?.username || '';
+
+                    let canEdit;
+
+                    // Логика для определения права редактировать
+                    if (!isAdmin) {
+                        canEdit = creatorUsernameOfCurrentPerson === username;
+                    } else {
+                        canEdit = true;
+                    }
+
+                    return {
+                        ...person,
+                        canEdit,
+                    };
+                });
+                console.log("люды: ", updatedPeople)
+                setPeople(updatedPeople); // Обновляем состояние с учетом canEdit
             }
         } catch (error) {
             console.error("Ошибка при получении данных:", error);
+            handleNotification("Ошибка при получении данных " + (message.length > 2 ? message : ''), "error");
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); // Останавливаем индикатор загрузки
         }
     };
 
@@ -157,7 +191,7 @@ const PersonManaging = () => {
                             <th>Вес</th>
                             <th>Паспорт ИД</th>
                             <th>Локация</th>
-                            <th>Создал</th>
+                            {/*<th>Создал</th>*/}
                             <th>Действия</th>
                         </tr>
                         </thead>
@@ -172,17 +206,26 @@ const PersonManaging = () => {
                                 <td>{person.weight}</td>
                                 <td>{person.passportID}</td>
                                 <td>{person.location.name}</td>
-                                <td>{person.creator.username}</td>
-                                <td>
-                                    <button onClick={() => {
-                                        setIsEdit(true);
-                                        setIsFormVisible(true);
-                                        setSelectedPerson(person);
-                                    }}>
-                                        Изменить данные
-                                    </button>
-                                    <button onClick={() => handleDelete(person.id)}>Удалить</button>
-                                </td>
+                                {/*<td>{person.creator.username | console.log("пупу", person.creator.username)}</td>*/}
+                                {person.canEdit ?
+                                    <td>
+                                        <button onClick={() => {
+                                            setIsEdit(true);
+                                            setIsFormVisible(true);
+                                            setSelectedPerson(person);
+                                        }}>
+                                            Изменить данные
+                                        </button>
+                                        <button onClick={() => handleDelete(person.id)}>Удалить</button>
+                                    </td> :
+                                    <>
+                                        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                                            <img src="/never.gif" alt="вы не можете редактировать этот объект"
+                                                 width={50} height={50}/>
+                                        </div>
+                                    </>
+
+                                }
                             </tr>
                         ))}
                         </tbody>

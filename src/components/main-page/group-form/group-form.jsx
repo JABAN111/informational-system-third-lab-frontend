@@ -5,17 +5,16 @@ import authFetch from "../../../utils/netUitls";
 
 const GroupForm = ({selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotification}) => {
     const [groupName, setGroupName] = useState("");
-    const [studentsCount, setStudentsCount] = useState(0);
+    const [studentsCount, setStudentsCount] = useState(1);
     const [groupPotentialAdmin, setGroupPotentialAdmin] = useState([]);
     const [chosenAdmin, setChosenAdmin] = useState(null);
     const [coordinates, setCoordinates] = useState({x: 0, y: 0});
-    const [expelledStudentsCount, setExlledStudentsCount] = useState(0);
-    const [transferredStudents, setTransferredStudents] = useState(0);
+    const [expelledStudentsCount, setExlledStudentsCount] = useState(1);
+    const [transferredStudents, setTransferredStudents] = useState(1);
     const [formOfEducation, setFormOfEducation] = useState("FULL_TIME_EDUCATION");
-    const [shouldBeExpelled, setShouldBeExpelled] = useState(0);
-    const [averageMark, setAverageMark] = useState("1.1");
+    const [shouldBeExpelled, setShouldBeExpelled] = useState(1);
+    const [averageMark, setAverageMark] = useState(1.1);
     const [semester, setSemester] = useState("SECOND");
-    const [averageMarkValue, setAverageMarkValue] = useState('');
 
 
     const formsOfEducation = {
@@ -62,7 +61,6 @@ const GroupForm = ({selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotific
 
             if (data.body && Array.isArray(data.body.content)) {
                 setGroupPotentialAdmin(data.body.content);
-
             } else {
                 setGroupPotentialAdmin([]);
             }
@@ -72,48 +70,27 @@ const GroupForm = ({selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotific
     };
 
     const handleChange = (e) => {
-        const newValue = e.target.value;
+        let newValue = e.target.value;
 
-        // Регулярное выражение для форматов "0.1", "1,2" и других
-        const pattern = /^-?\d*[.,]?\d{0,2}$/;
 
+        newValue = newValue.replace(',', '.');
+        const pattern = /^-?\d*\.?\d{0,2}$/;
         if (pattern.test(newValue) || newValue === '') {
-            setAverageMarkValue(newValue); // Обновляем значение, если оно валидно
+            setAverageMark(newValue);
+        } else {
+            console.error("ошибка присвоения")
+            // setAverageMark(newValue);
         }
     };
 
     const handleBlur = () => {
         // Автоматическая замена запятой на точку при потере фокуса, если требуется
-        setAverageMarkValue((prevValue) => prevValue.replace(',', '.'));
+        setAverageMark((prevValue) => prevValue.replace(',', '.'));
     };
-
-
-    // const parseFloatRu = (text) => {
-    //     const cleanedText = text;
-    //
-    //     // Проверяем, если это пустая строка или текст, то возвращаем NaN
-    //     if (!cleanedText || isNaN(cleanedText.replace(',', '.'))) {
-    //         return NaN;
-    //     }
-    //
-    //     // Заменяем запятую на точку для корректной обработки чисел
-    //     const valueWithDot = cleanedText.replace(',', '.');
-    //
-    //     // Проверяем, является ли результат числом
-    //     const parsedValue = parseFloat(valueWithDot);
-    //
-    //     // Если результат не является числом, возвращаем NaN
-    //     if (isNaN(parsedValue)) {
-    //         return NaN;
-    //     }
-    //
-    //     return {averageMarkValue: parsedValue, isValid: true};
-    // }
-
-    function parseRuToEnFloat(averageMarkValue) {
-        averageMarkValue += ''
-        averageMarkValue.replace(',','.')
-        return parseFloat(averageMarkValue)
+//
+// Функция для преобразования с русской десятичной запятой в английскую точку
+    function parseRuToEnFloat() {
+        // return parseFloat(averageMark.replace(',', '.'));
     }
 
     const handleSubmit = async (e) => {
@@ -130,7 +107,7 @@ const GroupForm = ({selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotific
             transferredStudents: transferredStudents,
             formOfEducation: formOfEducation,
             shouldBeExpelled: shouldBeExpelled,
-            averageMark: parseRuToEnFloat(averageMarkValue),
+            averageMark: averageMark,
             semesterEnum: semester,
             groupAdmin: chosenAdmin
         };
@@ -255,10 +232,10 @@ const GroupForm = ({selectedGroup, onSubmit, onClose, editOnlyAdmin, showNotific
                 {/*<label>*/}
                 Средняя оценка группы:
                 <input
-                    name="my_field"
-                    value={averageMarkValue}
+                    name="averageMark"
+                    value={averageMark}
                     onChange={handleChange}
-                    onBlur={handleBlur} // Преобразуем запятую в точку при потере фокуса
+                    // onBlur={handleBlur} // Преобразуем запятую в точку при потере фокуса
                     placeholder="Введите число"
                 />
                 {/*<input*/}
