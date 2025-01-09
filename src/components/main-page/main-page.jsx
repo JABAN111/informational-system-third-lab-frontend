@@ -51,16 +51,6 @@ const MainPage = () => {
 
 
     const renderContent = () => {
-
-        //     return <div>
-        //         <h1>Вы должны авторизоваться</h1>
-        //         <Link to="/auth">
-        //             <h6>
-        //                 страница авторизации
-        //             </h6>
-        //         </Link>
-        //     </div>
-        // }
         switch (activeTab) {
             case 'admin':
                 return <AdminPanel />;

@@ -12,6 +12,7 @@ import GroupForm from "../group-form/group-form";
 import Modal from "../modal";
 import authFetch from "../../../utils/netUitls";
 import Notification from "../../notification-component/notification";
+import Upload from "../upload/upload";
 
 const GroupManaging = () => {
     const [studyGroups, setStudyGroups] = useState([]);
@@ -119,7 +120,8 @@ const GroupManaging = () => {
             } catch (error) {
                 console.error("Ошибка в long polling:", error);
             }
-            await new Promise(resolve => setTimeout(resolve, 30_000));
+            //todo вернуть к 30_000
+            await new Promise(resolve => setTimeout(resolve, 900000000000000_000));
         }
     };
 
@@ -347,27 +349,42 @@ const GroupManaging = () => {
     const averageMarProcessing = (e) => {
         let newValue = e.target.value;
 
-        if(newValue)
+        if (newValue)
             newValue = newValue.replace(',', '.');
 
         const pattern = /^-?\d*\.?\d{0,2}$/;
         if (pattern.test(newValue) || newValue === '') {
-            setFilterParams({ ...filterParams, averageMark: newValue });
+            setFilterParams({...filterParams, averageMark: newValue});
         } else {
-            setFilterParams({ ...filterParams, averageMark: '' });
+            setFilterParams({...filterParams, averageMark: ''});
         }
     };
 
 
-    const handleBlur = () => {};
+    const handleBlur = () => {
+    };
 
+    const dropAllDataExceptUser = async (e) => {
+        e.preventDefault();
+        await authFetch(
+            "http://localhost:8080/api/v1/import/drop",
+            {method: "POST"}
+        ).then((response) => {console.log(response)}).catch((error) => {console.error(error)});
+        fetchGroups()
 
-
+    }
 
 
     return (
         <div className="main-page">
             <h1>Список учебных групп</h1>
+            <Upload callback={fetchGroups}/>
+            <form onSubmit={dropAllDataExceptUser}>
+                <button>
+                    Дропнуть всю информацию, кроме аккаунтов
+                </button>
+            </form>
+
             <label>
                 Элементов на странице:
                 <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))}>

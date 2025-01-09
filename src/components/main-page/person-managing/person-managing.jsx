@@ -89,9 +89,9 @@ const PersonManaging = () => {
         )
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (passportId) => {
         try {
-            const response = await authFetch(`${DELETE_PERSON}/${id}`, {
+            const response = await authFetch(`${DELETE_PERSON}/${passportId}`, {
                 method: 'DELETE'
             });
 
@@ -182,7 +182,6 @@ const PersonManaging = () => {
                     <table>
                         <thead>
                         <tr>
-                            <th>ИД</th>
                             <th>Имя</th>
                             <th>Цвет глаз</th>
                             <th>Цвет волос</th>
@@ -196,8 +195,7 @@ const PersonManaging = () => {
                         </thead>
                         <tbody>
                         {filteredPeople.map(person => (
-                            <tr key={person.id}>
-                                <td>{person.id}</td>
+                            <tr key={person.passportID}>
                                 <td>{person.name}</td>
                                 <td>{person.eyeColor}</td>
                                 <td>{person.hairColor}</td>
@@ -205,7 +203,6 @@ const PersonManaging = () => {
                                 <td>{person.weight}</td>
                                 <td>{person.passportID}</td>
                                 <td>{person.location.name}</td>
-                                {/*<td>{person.creator.username | console.log("пупу", person.creator.username)}</td>*/}
                                 {person.canEdit ?
                                     <td>
                                         <button onClick={() => {
@@ -215,7 +212,7 @@ const PersonManaging = () => {
                                         }}>
                                             Изменить данные
                                         </button>
-                                        <button onClick={() => handleDelete(person.id)}>Удалить</button>
+                                        <button onClick={() => handleDelete(person.passportID)}>Удалить</button>
                                     </td> :
                                     <>
                                         <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
