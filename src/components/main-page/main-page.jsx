@@ -7,6 +7,7 @@ import FeaturesPanel from "./features/features-panel";
 import OptionalTask from "./optional-task/optional-task";
 import {Link, useNavigate} from "react-router-dom";
 import authFetch from "../../utils/netUitls";
+import ListToDownload from "./list-files/ListToDownload";
 
 const MainPage = () => {
     const navigate = useNavigate();
@@ -65,6 +66,8 @@ const MainPage = () => {
                 return <>
                     <OptionalTask />
                 </>
+            case 'operations':
+                return <ListToDownload/>
             default:
                 return <GroupManaging/>;
         }
@@ -109,6 +112,12 @@ const MainPage = () => {
                             onClick={() => setActiveTab('extra-task')}
                         >
                             Опциональное задание
+                        </li>
+                        <li
+                            className={activeTab === 'operations' ? 'active' : ''}
+                            onClick={() => setActiveTab('operations')}
+                            >
+                            Операции
                         </li>
                     </ul>
                 </nav>

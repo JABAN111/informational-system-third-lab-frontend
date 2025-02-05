@@ -7,14 +7,17 @@ import {
     GET_FILTERED_GROUPS, GET_PERSONS,
     UPDATE_GROUP,
     UPDATE_GROUP_ADMIN, UPDATE_GROUPS,
+    GET_OPERATIONS
 } from '../../../config';
 import GroupForm from "../group-form/group-form";
 import Modal from "../modal";
 import authFetch from "../../../utils/netUitls";
 import Notification from "../../notification-component/notification";
 import Upload from "../upload/upload";
+import ListToDownload from "../list-files/ListToDownload";
 
 const GroupManaging = () => {
+
     const [studyGroups, setStudyGroups] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedGroup, setSelectedGroup] = useState(null);
@@ -199,8 +202,7 @@ const GroupManaging = () => {
             }
 
             const updatedGroups = data.body.content.map((group) => {
-                // Используйте нужный creator (выберите groupAdmin или верхний уровень creator)
-                const creatorUsernameOfCurrentGroup = group.creator?.username || ''; // Если нужен creator из group
+                const creatorUsernameOfCurrentGroup = group.creator?.username || '';
                 let canEdit;
                 if (!isAdmin) {
                     canEdit = creatorUsernameOfCurrentGroup === username;
@@ -378,6 +380,7 @@ const GroupManaging = () => {
     return (
         <div className="main-page">
             <h1>Список учебных групп</h1>
+            {/*<button onClick={handleFilesModalOpen}>Просмотр моих файлов</button>*/}
             <Upload callback={fetchGroups}/>
             <form onSubmit={dropAllDataExceptUser}>
                 <button>

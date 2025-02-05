@@ -26,7 +26,7 @@ export const GET_LIST_AVERAGES = `${SERVER_URL}/${API_STUDY_GROUP}/get-unique-av
 export const GET_TOTAL_EXPELLED_STUDENTS = `${SERVER_URL}/${API_STUDY_GROUP}/total-expelled-students`
 export const UPDATE_GROUP_ADMIN = `${SERVER_URL}/${API_STUDY_GROUP}/update-admin`
 export const GET_FILTERED_GROUPS = `${SERVER_URL}/${API_STUDY_GROUP}/filter`
-
+export const GET_OPERATIONS = "http://localhost:8080/api/v1/import/get-all-operations"
 
 const ADMIN_API = `api/${API_VERSION}/admin/console`
 export const GET_ALL_ADMINS = `${SERVER_URL}/${ADMIN_API}/get-all`
